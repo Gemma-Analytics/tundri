@@ -1,6 +1,8 @@
+import itertools
 from typing import Any, Dict, List, Optional, cast
 
 import click
+from sqlalchemy.exc import ProgrammingError
 
 from permifrost.entities import EntityGenerator
 from permifrost.error import SpecLoadingError
@@ -21,6 +23,7 @@ class SnowflakeSpecLoader:
         users: Optional[List[str]] = None,
         run_list: Optional[List[str]] = None,
         ignore_memberships: Optional[bool] = False,
+        ignore_missing_entities: Optional[bool] = False,
         spec_test: Optional[bool] = False,
     ) -> None:
         run_list = run_list or ["users", "roles"]
@@ -46,7 +49,7 @@ class SnowflakeSpecLoader:
             "Checking that all entities in the spec file are defined in Snowflake",
             fg="green",
         )
-        self.check_entities_on_snowflake_server(conn)
+        self.check_entities_on_snowflake_server(conn, ignore_missing_entities)
 
         # Get the privileges granted to users and roles in the Snowflake account
         # Used in order to figure out which permissions in the spec file are
@@ -85,11 +88,13 @@ class SnowflakeSpecLoader:
             raise SpecLoadingError("\n".join(error_messages))
 
     def check_warehouse_entities(self, conn):
+        missing_entities = []
         error_messages = []
         if len(self.entities["warehouses"]) > 0:
             warehouses = conn.show_warehouses()
             for warehouse in self.entities["warehouses"]:
                 if warehouse not in warehouses:
+                    missing_entities.append(warehouse)
                     error_messages.append(
                         f"Missing Entity Error: Warehouse {warehouse} was not found on"
                         " Snowflake Server. Please create it before continuing."
@@ -98,14 +103,16 @@ class SnowflakeSpecLoader:
             logger.debug(
                 "`warehouses` not found in spec, skipping SHOW WAREHOUSES call."
             )
-        return error_messages
+        return missing_entities, error_messages
 
     def check_integration_entities(self, conn):
+        missing_entities = []
         error_messages = []
         if len(self.entities["integrations"]) > 0:
             integrations = conn.show_integrations()
             for integration in self.entities["integrations"]:
                 if integration not in integrations:
+                    missing_entities.append(integration)
                     error_messages.append(
                         f"Missing Entity Error: Integration {integration} was not found on"
                         " Snowflake Server. Please create it before continuing."
@@ -114,64 +121,80 @@ class SnowflakeSpecLoader:
             logger.debug(
                 "`integrations` not found in spec, skipping SHOW INTEGRATIONS call."
             )
-        return error_messages
+        return missing_entities, error_messages
 
     def check_database_entities(self, conn):
+        missing_entities = []
         error_messages = []
         if len(self.entities["databases"]) > 0:
             databases = conn.show_databases()
             for db in self.entities["databases"]:
                 if db not in databases:
+                    missing_entities.append(db)
                     error_messages.append(
                         f"Missing Entity Error: Database {db} was not found on"
                         " Snowflake Server. Please create it before continuing."
                     )
         else:
             logger.debug("`databases` not found in spec, skipping SHOW DATABASES call.")
-        return error_messages
+        return missing_entities, error_messages
 
     def check_schema_ref_entities(self, conn):
+        missing_entities = []
         error_messages = []
         if len(self.entities["schema_refs"]) > 0:
             schemas = conn.show_schemas()
             for schema in self.entities["schema_refs"]:
                 if "*" not in schema and schema not in schemas:
+                    missing_entities.append(schema)
                     error_messages.append(
                         f"Missing Entity Error: Schema {schema} was not found on"
                         " Snowflake Server. Please create it before continuing."
                     )
         else:
             logger.debug("`schemas` not found in spec, skipping SHOW SCHEMAS call.")
-
-        return error_messages
+        return missing_entities, error_messages
 
     def check_table_ref_entities(self, conn):
+        missing_entities = []
         error_messages = []
         if len(self.entities["table_refs"]) > 0:
             views = conn.show_views()
             for db, tables in self.entities["tables_by_database"].items():
-                existing_tables = conn.show_tables(database=db)
+
+                try:
+                    existing_tables = conn.show_tables(database=db)
+                except ProgrammingError as exc:
+                    # Ignore error when a database is missing (this will be treated by `check_database_entities`)
+                    if "Object does not exist" in repr(exc):
+                        continue
+                    else:
+                        raise exc
+
                 for table in tables:
                     if (
                         "*" not in table
                         and table not in existing_tables
                         and table not in views
                     ):
+                        missing_entities.append(table)
                         error_messages.append(
                             f"Missing Entity Error: Table/View {table} was not found on"
                             " Snowflake Server. Please create it before continuing."
                         )
         else:
             logger.debug("`tables` not found in spec, skipping SHOW TABLES/VIEWS call.")
-        return error_messages
+        return missing_entities, error_messages
 
     def check_role_entities(self, conn):
+        missing_entities = []
         error_messages = []
         if len(self.entities["roles"]) > 0:
             roles = conn.show_roles()
             for role in self.spec["roles"]:
                 for role_name, config in role.items():
                     if role_name not in roles:
+                        missing_entities.append(role_name)
                         error_messages.append(
                             f"Missing Entity Error: Role {role_name} was not found on"
                             " Snowflake Server. Please create it before continuing."
@@ -186,24 +209,81 @@ class SnowflakeSpecLoader:
                             )
         else:
             logger.debug("`roles` not found in spec, skipping SHOW ROLES call.")
-        return error_messages
+        return missing_entities, error_messages
 
     def check_users_entities(self, conn):
+        missing_entities = []
         error_messages = []
         if len(self.entities["users"]) > 0:
             users = conn.show_users()
             for user in self.entities["users"]:
                 if user not in users:
+                    missing_entities.append(user)
                     error_messages.append(
                         f"Missing Entity Error: User {user} was not found on"
                         " Snowflake Server. Please create it before continuing."
                     )
         else:
             logger.debug("`users` not found in spec, skipping SHOW USERS call.")
-        return error_messages
+        return missing_entities, error_messages
+
+    def remove_missing_entities(
+        self,
+        missing_warehouses,
+        missing_integrations,
+        missing_dbs,
+        missing_schema_refs,
+        missing_table_refs,
+        missing_roles,
+        missing_users,
+    ):
+        """
+        Remove missing entities from the spec file to avoid raising errors when running
+        in dry run mode
+        """
+        logger.info("Ignoring missing entities in the spec file")
+        for missing_entity in missing_warehouses:
+            logger.info(f"Ignoring missing warehouses {missing_entity}")
+            self.entities["warehouses"].remove(missing_entity)
+        for missing_entity in missing_integrations:
+            logger.info(f"Ignoring missing integrations {missing_entity}")
+            self.entities["integrations"].remove(missing_entity)
+        for missing_entity in missing_dbs:
+            logger.info(f"Ignoring missing dbs {missing_entity}")
+            self.entities["databases"].remove(missing_entity)
+            self.entities["database_refs"].remove(missing_entity)
+            self.spec["databases"] = [
+                item
+                for item in self.spec["databases"]
+                if missing_entity not in item.keys()
+            ]
+        for missing_entity in missing_schema_refs:
+            logger.info(f"Ignoring missing schema_refs {missing_entity}")
+            self.entities["schema_refs"].remove(missing_entity)
+        for missing_entity in missing_table_refs:
+            logger.info(f"Ignoring missing table_refs {missing_entity}")
+            self.entities["table_refs"].remove(missing_entity)
+        for missing_entity in missing_roles:
+            logger.info(f"Ignoring missing roles {missing_entity}")
+            self.entities["roles"].remove(missing_entity)
+            self.spec["roles"] = [
+                item for item in self.spec["roles"] if missing_entity not in item.keys()
+            ]
+            for role_name in self.spec["roles"]:
+                role = role_name[list(role_name.keys())[0]]
+                if "member_of" in role.keys():
+                    role["member_of"] = [
+                        item for item in role["member_of"] if item != missing_entity
+                    ]
+        for missing_entity in missing_users:
+            logger.info(f"Ignoring missing users {missing_entity}")
+            self.entities["users"].remove(missing_entity)
+            self.spec["users"] = [
+                item for item in self.spec["users"] if missing_entity not in item.keys()
+            ]
 
     def check_entities_on_snowflake_server(  # noqa
-        self, conn: Optional[SnowflakeConnector] = None
+        self, conn: Optional[SnowflakeConnector] = None, ignore_missing_entities=False
     ) -> None:
         """
         Make sure that all [warehouses, integrations, dbs, schemas, tables, users, roles]
@@ -217,13 +297,46 @@ class SnowflakeSpecLoader:
         if conn is None:
             conn = SnowflakeConnector()
 
-        error_messages.extend(self.check_warehouse_entities(conn))
-        error_messages.extend(self.check_integration_entities(conn))
-        error_messages.extend(self.check_database_entities(conn))
-        error_messages.extend(self.check_schema_ref_entities(conn))
-        error_messages.extend(self.check_table_ref_entities(conn))
-        error_messages.extend(self.check_role_entities(conn))
-        error_messages.extend(self.check_users_entities(conn))
+        # TODO: refactor avoid so many similar variables (e.g. use dict)
+        missing_warehouses, error_messages_warehouses = self.check_warehouse_entities(
+            conn
+        )
+        missing_integrations, error_messages_integrations = (
+            self.check_integration_entities(conn)
+        )
+        missing_dbs, error_messages_dbs = self.check_database_entities(conn)
+        missing_schema_refs, error_messages_schema_refs = (
+            self.check_schema_ref_entities(conn)
+        )
+        missing_table_refs, error_messages_table_refs = self.check_table_ref_entities(
+            conn
+        )
+        missing_roles, error_messages_roles = self.check_role_entities(conn)
+        missing_users, error_messages_users = self.check_users_entities(conn)
+
+        if ignore_missing_entities:
+            self.remove_missing_entities(
+                missing_warehouses,
+                missing_integrations,
+                missing_dbs,
+                missing_schema_refs,
+                missing_table_refs,
+                missing_roles,
+                missing_users,
+            )
+            return
+
+        error_messages = list(
+            itertools.chain(
+                error_messages_warehouses,
+                error_messages_integrations,
+                error_messages_dbs,
+                error_messages_schema_refs,
+                error_messages_table_refs,
+                error_messages_roles,
+                error_messages_users,
+            )
+        )
 
         if error_messages:
             raise SpecLoadingError("\n".join(error_messages))

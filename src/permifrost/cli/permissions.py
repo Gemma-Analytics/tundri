@@ -60,8 +60,23 @@ def print_command(command, diff, dry=False):
     help="Do not handle role membership grants/revokes",
     is_flag=True,
 )
+@click.option(
+    "--ignore-missing-entities-dry-run",
+    help="Do not raise errors when entities are missing in dry run mode",
+    is_flag=True,
+)
 @click.pass_context
-def run(ctx, spec, dry, diff, role, user, ignore_memberships, print_skipped=False):
+def run(
+    ctx,
+    spec,
+    dry,
+    diff,
+    role,
+    user,
+    ignore_memberships,
+    ignore_missing_entities_dry_run,
+    print_skipped=False,
+):
     """
     Grant the permissions provided in the provided specification file for specific users and roles
     """
@@ -83,6 +98,7 @@ def run(ctx, spec, dry, diff, role, user, ignore_memberships, print_skipped=Fals
         users=user,
         run_list=run_list,
         ignore_memberships=ignore_memberships,
+        ignore_missing_entities_dry_run=ignore_missing_entities_dry_run,
         print_skipped=print_skipped,
     )
 
@@ -112,7 +128,7 @@ def run(ctx, spec, dry, diff, role, user, ignore_memberships, print_skipped=Fals
     default=["roles", "users"],
     help="Run grants for specific users. Usage: --user testuser --user testuser2.",
 )
-def spec_test(spec, role, user, run_list, ignore_memberships):
+def spec_test(spec, role, user, run_list, ignore_memberships, ignore_missing_objects):
     """
     Load SnowFlake spec based on the roles.yml provided. CLI use only for confirming specifications are valid.
     """
@@ -122,11 +138,20 @@ def spec_test(spec, role, user, run_list, ignore_memberships):
         user=user,
         run_list=run_list,
         ignore_memberships=ignore_memberships,
+        ignore_missing_entities=ignore_missing_objects,
         do_spec_test=True,
     )
 
 
-def load_specs(spec, role, user, run_list, ignore_memberships, do_spec_test):
+def load_specs(
+    spec,
+    role,
+    user,
+    run_list,
+    ignore_memberships,
+    ignore_missing_entities,
+    do_spec_test,
+):
     """
     Load specs separately.
     """
@@ -138,6 +163,7 @@ def load_specs(spec, role, user, run_list, ignore_memberships, do_spec_test):
             users=user,
             run_list=run_list,
             ignore_memberships=ignore_memberships,
+            ignore_missing_entities=ignore_missing_entities,
             spec_test=do_spec_test,
         )
         click.secho("Snowflake specs successfully loaded", fg="green")
@@ -150,7 +176,15 @@ def load_specs(spec, role, user, run_list, ignore_memberships, do_spec_test):
 
 
 def permifrost_grants(
-    spec, dry, diff, roles, users, run_list, ignore_memberships, print_skipped
+    spec,
+    dry,
+    diff,
+    roles,
+    users,
+    run_list,
+    ignore_memberships,
+    ignore_missing_entities_dry_run,
+    print_skipped,
 ):
     """Grant the permissions provided in the provided specification file."""
     spec_loader = load_specs(
@@ -159,6 +193,9 @@ def permifrost_grants(
         user=users,
         run_list=run_list,
         ignore_memberships=ignore_memberships,
+        ignore_missing_entities=(
+            True if dry and ignore_missing_entities_dry_run else False
+        ),
         do_spec_test=False,
     )
 
