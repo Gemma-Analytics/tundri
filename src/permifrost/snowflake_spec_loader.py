@@ -161,11 +161,10 @@ class SnowflakeSpecLoader:
         if len(self.entities["table_refs"]) > 0:
             views = conn.show_views()
             for db, tables in self.entities["tables_by_database"].items():
-
                 try:
                     existing_tables = conn.show_tables(database=db)
                 except ProgrammingError as exc:
-                    # Ignore error when a database is missing (this will be treated by `check_database_entities`)
+                    # Ignore error when a database is missing (this is treated by `check_database_entities`)
                     if "Object does not exist" in repr(exc):
                         continue
                     else:
