@@ -128,7 +128,7 @@ def run(
     default=["roles", "users"],
     help="Run grants for specific users. Usage: --user testuser --user testuser2.",
 )
-def spec_test(spec, role, user, run_list, ignore_memberships, ignore_missing_objects):
+def spec_test(spec, role, user, run_list, ignore_memberships, ignore_missing_entities):
     """
     Load SnowFlake spec based on the roles.yml provided. CLI use only for confirming specifications are valid.
     """
@@ -138,7 +138,7 @@ def spec_test(spec, role, user, run_list, ignore_memberships, ignore_missing_obj
         user=user,
         run_list=run_list,
         ignore_memberships=ignore_memberships,
-        ignore_missing_entities=ignore_missing_objects,
+        ignore_missing_entities=ignore_missing_entities,
         do_spec_test=True,
     )
 
