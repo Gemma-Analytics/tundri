@@ -15,7 +15,7 @@ requires = [
     "click-default-group",
     "pyyaml",
     "snowflake-connector-python[secure-local-storage]",
-    "snowflake-sqlalchemy",
+    "snowflake-sqlalchemy==1.5.3",
     "sqlalchemy",
 ]
 
