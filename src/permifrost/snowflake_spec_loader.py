@@ -233,7 +233,6 @@ class SnowflakeSpecLoader:
         """
         Remove missing entities from the spec and entities objects
         """
-        click.secho("Ignoring missing entities in the spec file")
         for missing_entity in missing_entities["warehouses"]:
             click.secho(f"Ignored missing warehouse {missing_entity}")
             self.entities["warehouses"].remove(missing_entity)
