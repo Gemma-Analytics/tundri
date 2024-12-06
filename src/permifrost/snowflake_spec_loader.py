@@ -242,7 +242,11 @@ class SnowflakeSpecLoader:
         for missing_entity in missing_entities["dbs"]:
             click.secho(f"Ignored missing db {missing_entity}")
             self.entities["databases"].remove(missing_entity)
-            self.entities["database_refs"].remove(missing_entity)
+            
+            # Some listed databases might not be present in the database_refs list
+            if missing_entity in self.entities["database_refs"]:
+                self.entities["database_refs"].remove(missing_entity)
+            
             self.spec["databases"] = [
                 item
                 for item in self.spec["databases"]
