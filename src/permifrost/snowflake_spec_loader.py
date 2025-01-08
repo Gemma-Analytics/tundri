@@ -77,10 +77,10 @@ class SnowflakeSpecLoader:
         click.secho(f"  Current user is: {conn.get_current_user()}.", fg="green")
 
         current_role = conn.get_current_role()
-        if "securityadmin" != current_role:
+        if not current_role in ["securityadmin", "accountadmin"]:
             error_messages.append(
-                "Current role is not securityadmin! "
-                "Permifrost expects to run as securityadmin, please update your connection settings."
+                "Current role is not securityadmin or accountadmin! "
+                "Permifrost expects to run as securityadmin or accountadmin, please update your connection settings."
             )
         click.secho(f"  Current role is: {current_role}.", fg="green")
 
