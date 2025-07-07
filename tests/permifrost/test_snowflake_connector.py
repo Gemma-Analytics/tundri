@@ -35,6 +35,7 @@ class TestSnowflakeConnector:
         db16 = "DATABASE_1.SCHEMA_1.TABLE_1.AMBIGUOUS_IDENTIFIER"
         db17 = 'DATABASE_1.SCHEMA_1."TABLE_1.AMBIGUOUS_IDENTIFIER"'
         db18 = "DATABASE_1.SCHEMA_1.GROUP"
+        db19 = None
 
         assert SnowflakeConnector.snowflaky(db1) == 'analytics."schema"."table"'
         assert SnowflakeConnector.snowflaky(db2) == '"1234raw"."schema"."table"'
@@ -78,6 +79,8 @@ class TestSnowflakeConnector:
             SnowflakeConnector.snowflaky(db17)
 
         assert SnowflakeConnector.snowflaky(db18) == 'database_1.schema_1."GROUP"'
+
+        assert SnowflakeConnector.snowflaky(db19) == ""
 
     def test_uses_oauth_if_available(self, mocker, snowflake_connector_env):
         mocker.patch("sqlalchemy.create_engine")
