@@ -48,5 +48,9 @@ def pytest_itemcollected(item):
         suf = suf = " ".join(node.__doc__.split()) + " " if node.__doc__ else ""
     if pref or suf:
         item._nodeid = (
-            Fore.YELLOW + "".join((pref, suf)) + "\n" + Style.RESET_ALL + item._nodeid
+            Fore.YELLOW
+            + "".join((pref, suf))
+            + "\n"
+            + Style.RESET_ALL
+            + item._nodeid
         )

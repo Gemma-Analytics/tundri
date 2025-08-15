@@ -34,14 +34,18 @@ def print_command(command, diff, dry=False):
         foreground_color = "red"
         run_prefix = "[ERROR] "
 
-    click.secho(f"{diff_prefix}{run_prefix}{command['sql']};", fg=foreground_color)
+    click.secho(
+        f"{diff_prefix}{run_prefix}{command['sql']};", fg=foreground_color
+    )
 
 
 @cli.command()  # type: ignore
 @click.argument("spec")
 @click.option("--dry", help="Do not actually run, just check.", is_flag=True)
 @click.option(
-    "--diff", help="Show full diff, both new and existing permissions.", is_flag=True
+    "--diff",
+    help="Show full diff, both new and existing permissions.",
+    is_flag=True,
 )
 @click.option(
     "--role",
@@ -128,7 +132,9 @@ def run(
     default=["roles", "users"],
     help="Run grants for specific users. Usage: --user testuser --user testuser2.",
 )
-def spec_test(spec, role, user, run_list, ignore_memberships, ignore_missing_entities):
+def spec_test(
+    spec, role, user, run_list, ignore_memberships, ignore_missing_entities
+):
     """
     Load SnowFlake spec based on the roles.yml provided. CLI use only for confirming specifications are valid.
     """

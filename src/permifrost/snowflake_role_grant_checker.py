@@ -39,7 +39,10 @@ class SnowflakeRoleGrantChecker:
                     name = entity_name if entity_type != "account" else "*"
                     role_permissions.append(
                         SnowflakePermission(
-                            name, entity_type, [privilege], options["grant_option"]
+                            name,
+                            entity_type,
+                            [privilege],
+                            options["grant_option"],
                         )
                     )
         return role_permissions
@@ -61,7 +64,9 @@ class SnowflakeRoleGrantChecker:
         if permission.as_owner() in role_permissions:
             # Since we don't check the grant_option of a permission when checking equality, we want to make sure
             # to return the actual permission value that was stored in the database to be most correct.
-            return role_permissions[role_permissions.index(permission.as_owner())]
+            return role_permissions[
+                role_permissions.index(permission.as_owner())
+            ]
         if permission in role_permissions:
             return role_permissions[role_permissions.index(permission)]
         return None

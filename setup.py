@@ -35,14 +35,14 @@ dev_requires = [
 ]
 
 setup(
-    name="permifrost",
+    name="gemma.permifrost",
     version=version,
-    author="GitLab Data Team, Meltano Team, & Contributors",
-    author_email="permifrost@gitlab.com",
-    description="Permifrost Permissions",
+    author="Gemma Analytics",
+    author_email="info@gemmaanalytics.com",
+    description="Permifrost Permissions - Fork by Gemma Analytics",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://gitlab.com/gitlab-data/permifrost",
+    url="https://github.com/Gemma-Analytics/permifrost",
     package_dir={"": "src"},
     packages=find_packages(where="src"),
     include_package_data=True,

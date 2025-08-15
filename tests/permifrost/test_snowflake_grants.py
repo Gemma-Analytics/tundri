@@ -79,7 +79,10 @@ def test_role_config():
 @pytest.fixture(scope="class")
 def test_user_config():
     config = {
-        "user_name": {"can_login": True, "member_of": ["object_role", "user_role"]}
+        "user_name": {
+            "can_login": True,
+            "member_of": ["object_role", "user_role"],
+        }
     }
 
     return config
@@ -231,7 +234,8 @@ class TestSnowflakeGrants:
         )
 
         integration_command_list = generator.generate_integration_grants(
-            "functional_role", test_role_config["functional_role"]["integrations"]
+            "functional_role",
+            test_role_config["functional_role"]["integrations"],
         )
 
         integration_lower_list = [
@@ -478,7 +482,9 @@ class TestGenerateRoleGrantRevokes:
         """
         entity_type = "roles"
         entity = "role_1"
-        test_grants_to_role = {"role_1": {"usage": {"role": ["role_2", "role_3"]}}}
+        test_grants_to_role = {
+            "role_1": {"usage": {"role": ["role_2", "role_3"]}}
+        }
         test_roles_granted_to_user = {}
         ignore_membership = False
         grants_spec = {}
@@ -529,7 +535,9 @@ class TestGenerateRoleGrantRevokes:
         """
         entity_type = "roles"
         entity = "role_1"
-        test_grants_to_role = {"role_1": {"usage": {"role": ["role_2", "role_3"]}}}
+        test_grants_to_role = {
+            "role_1": {"usage": {"role": ["role_2", "role_3"]}}
+        }
         test_roles_granted_to_user = {}
         ignore_membership = True
         grants_spec = {}
@@ -614,7 +622,9 @@ class TestGenerateRoleGrantRevokes:
         self, test_grants_to_role, test_roles_granted_to_user
     ):
         generator = SnowflakeGrantsGenerator(
-            test_grants_to_role, test_roles_granted_to_user, ignore_memberships=True
+            test_grants_to_role,
+            test_roles_granted_to_user,
+            ignore_memberships=True,
         )
 
         role_command_list = generator.generate_grant_roles(
@@ -689,7 +699,9 @@ class TestGenerateTableAndViewGrants:
             "show_tables",
             return_value=["database_1.schema_1.table_1"],
         )
-        mocker.patch.object(MockSnowflakeConnector, "show_views", return_value=[])
+        mocker.patch.object(
+            MockSnowflakeConnector, "show_views", return_value=[]
+        )
 
         config = {
             "read": ["database_1.schema_1.table_1"],
@@ -714,7 +726,9 @@ class TestGenerateTableAndViewGrants:
             "show_tables",
             return_value=["shared_database_1.public.table_1"],
         )
-        mocker.patch.object(MockSnowflakeConnector, "show_views", return_value=[])
+        mocker.patch.object(
+            MockSnowflakeConnector, "show_views", return_value=[]
+        )
 
         config = {
             "read": ["shared_database_1.public.table_1"],
@@ -734,9 +748,14 @@ class TestGenerateTableAndViewGrants:
         mocker.patch.object(
             MockSnowflakeConnector,
             "show_tables",
-            return_value=["database_1.schema_1.table_1", "database_1.schema_1.table_2"],
+            return_value=[
+                "database_1.schema_1.table_1",
+                "database_1.schema_1.table_2",
+            ],
         )
-        mocker.patch.object(MockSnowflakeConnector, "show_views", return_value=[])
+        mocker.patch.object(
+            MockSnowflakeConnector, "show_views", return_value=[]
+        )
 
         config = {
             "read": [
@@ -764,9 +783,14 @@ class TestGenerateTableAndViewGrants:
         mocker.patch.object(
             MockSnowflakeConnector,
             "show_tables",
-            return_value=["database_1.schema_1.table_1", "database_1.schema_1.table_2"],
+            return_value=[
+                "database_1.schema_1.table_1",
+                "database_1.schema_1.table_2",
+            ],
         )
-        mocker.patch.object(MockSnowflakeConnector, "show_views", return_value=[])
+        mocker.patch.object(
+            MockSnowflakeConnector, "show_views", return_value=[]
+        )
 
         config = {
             "read": [],
@@ -794,9 +818,14 @@ class TestGenerateTableAndViewGrants:
         mocker.patch.object(
             MockSnowflakeConnector,
             "show_tables",
-            return_value=["database_1.schema_1.table_1", "database_1.schema_1.table_2"],
+            return_value=[
+                "database_1.schema_1.table_1",
+                "database_1.schema_1.table_2",
+            ],
         )
-        mocker.patch.object(MockSnowflakeConnector, "show_views", return_value=[])
+        mocker.patch.object(
+            MockSnowflakeConnector, "show_views", return_value=[]
+        )
 
         config = {
             "read": [
@@ -830,7 +859,10 @@ class TestGenerateTableAndViewGrants:
         mocker.patch.object(
             MockSnowflakeConnector,
             "show_tables",
-            return_value=["database_1.schema_1.table_1", "database_1.schema_1.table_2"],
+            return_value=[
+                "database_1.schema_1.table_1",
+                "database_1.schema_1.table_2",
+            ],
         )
         mocker.patch.object(
             MockSnowflakeConnector,
@@ -1154,9 +1186,12 @@ class TestGenerateTableAndViewGrants:
             test_roles_granted_to_user,
         )
 
-        mock_connector, test_tables_config, test_grants_to_role_role, expected = config(
-            mocker
-        )
+        (
+            mock_connector,
+            test_tables_config,
+            test_grants_to_role_role,
+            expected,
+        ) = config(mocker)
 
         mocker.patch(
             "permifrost.snowflake_grants.SnowflakeConnector.show_tables",
@@ -1197,7 +1232,9 @@ class TestGenerateSchemaGrants:
             "write": [],
         }
 
-        expected = ["GRANT usage ON schema database_1.schema_1 TO ROLE functional_role"]
+        expected = [
+            "GRANT usage ON schema database_1.schema_1 TO ROLE functional_role"
+        ]
         return [MockSnowflakeConnector, config, expected]
 
     def single_rw_schema_config(mocker):
@@ -1304,8 +1341,14 @@ class TestGenerateSchemaGrants:
         read/write on DATABASE_1.SCHEMA_1
         """
         config = {
-            "read": ["shared_database_1.shared_schema_1", "database_1.schema_1"],
-            "write": ["shared_database_1.shared_schema_1", "database_1.schema_1"],
+            "read": [
+                "shared_database_1.shared_schema_1",
+                "database_1.schema_1",
+            ],
+            "write": [
+                "shared_database_1.shared_schema_1",
+                "database_1.schema_1",
+            ],
         }
 
         expected = [
@@ -1753,9 +1796,12 @@ class TestGenerateDatabaseGrants:
     ):
         mocker.patch.object(SnowflakeConnector, "__init__", lambda x: None)
 
-        mock_connector, test_database_config, expected, test_grants_to_role = config(
-            mocker
-        )
+        (
+            mock_connector,
+            test_database_config,
+            expected,
+            test_grants_to_role,
+        ) = config(mocker)
         # Generation of database grants should be identical while ignoring or not
         # ignoring memberships
         generator = SnowflakeGrantsGenerator(
@@ -1855,7 +1901,9 @@ class TestGenerateTableAndViewRevokes:
         }
 
         test_grants_to_role = {
-            "functional_role": {"select": {"table": ["database_1.schema_1.table_1"]}},
+            "functional_role": {
+                "select": {"table": ["database_1.schema_1.table_1"]}
+            },
         }
 
         expected = [
@@ -1878,7 +1926,9 @@ class TestGenerateTableAndViewRevokes:
         }
 
         test_grants_to_role = {
-            "functional_role": {"insert": {"table": ["database_1.schema_1.table_1"]}},
+            "functional_role": {
+                "insert": {"table": ["database_1.schema_1.table_1"]}
+            },
         }
 
         expected = [
@@ -2396,7 +2446,9 @@ class TestGenerateDatabaseRevokes:
             "functional_role": {"usage": {"database": ["database_1"]}},
         }
 
-        expected = ["REVOKE usage ON database database_1 FROM ROLE functional_role"]
+        expected = [
+            "REVOKE usage ON database database_1 FROM ROLE functional_role"
+        ]
 
         return [MockSnowflakeConnector, config, expected, test_grants_to_role]
 
@@ -2589,7 +2641,9 @@ class TestGenerateDatabaseRevokes:
         test_grants_to_role = {
             "functional_role": {
                 "usage": {"database": ["database_1", "shared_database_1"]},
-                "create schema": {"database": ["database_1", "shared_database_1"]},
+                "create schema": {
+                    "database": ["database_1", "shared_database_1"]
+                },
             }
         }
 
@@ -2629,9 +2683,12 @@ class TestGenerateDatabaseRevokes:
     ):
         mocker.patch.object(SnowflakeConnector, "__init__", lambda x: None)
 
-        mock_connector, test_database_config, expected, test_grants_to_role = config(
-            mocker
-        )
+        (
+            mock_connector,
+            test_database_config,
+            expected,
+            test_grants_to_role,
+        ) = config(mocker)
         # Generation of database grants should be identical while ignoring or not
         # ignoring memberships
         generator = SnowflakeGrantsGenerator(
@@ -2660,7 +2717,9 @@ class TestGenerateDatabaseRevokes:
 
 
 class TestSnowflakeOwnershipGrants:
-    def generate_ownership_on_warehouse(self, entity, entity_name, is_view=False):
+    def generate_ownership_on_warehouse(
+        self, entity, entity_name, is_view=False
+    ):
         """
         Test that SnowflakeSpecLoader generates ownership grant for an entity.
         Because we treat views and tables as the same entity in the spec, but
@@ -2707,15 +2766,23 @@ class TestSnowflakeOwnershipGrants:
             grants_to_role,
             roles_granted_to_user,
             expectation,
-        ) = self.generate_ownership_on_warehouse(entity[0], entity[1], entity[2])
-        generator = SnowflakeGrantsGenerator(grants_to_role, roles_granted_to_user)
+        ) = self.generate_ownership_on_warehouse(
+            entity[0], entity[1], entity[2]
+        )
+        generator = SnowflakeGrantsGenerator(
+            grants_to_role, roles_granted_to_user
+        )
         generator.conn = mock_connector
         sql_commands = generator.generate_grant_ownership(role, spec)
 
         assert sql_commands[0]["sql"] == expectation
 
     def test_generate_database_ownership_grants(
-        self, test_grants_to_role, test_roles_granted_to_user, test_role_config, mocker
+        self,
+        test_grants_to_role,
+        test_roles_granted_to_user,
+        test_role_config,
+        mocker,
     ):
         """Test that SnowflakeGrantsGenerator generates ownership grants for for multiple grant definitions"""
         mock_connector = MockSnowflakeConnector()

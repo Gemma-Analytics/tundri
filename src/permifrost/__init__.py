@@ -1,5 +1,5 @@
 # Managed by bumpversion
-__version__ = "0.15.4"
+__version__ = "0.1.1"
 
 from permifrost.error import SpecLoadingError
 

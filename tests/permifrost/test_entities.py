@@ -41,7 +41,14 @@ class TestEntityGenerator:
         Expect all actionable <database> references from the roles section in
         snowflake_spec_reference_roles.yml spec
         """
-        expected = {"demodb", "demodb2", "demodb3", "demodb4", "demodb5", "demodb6"}
+        expected = {
+            "demodb",
+            "demodb2",
+            "demodb3",
+            "demodb4",
+            "demodb5",
+            "demodb6",
+        }
         assert entities["database_refs"] == expected
 
     def test_schema_refs(self, entities):
@@ -138,9 +145,18 @@ class TestEntityGenerator:
 
 
 def test_filter_by_type(entities):
-    expected = {"demo", "sysadmin", "accountadmin", "useradmin", "securityadmin", "*"}
+    expected = {
+        "demo",
+        "sysadmin",
+        "accountadmin",
+        "useradmin",
+        "securityadmin",
+        "*",
+    }
     grouped_entities = EntityGenerator.group_spec_by_type(entities)
     assert (
-        EntityGenerator.filter_grouped_entities_by_type(grouped_entities, "roles")
+        EntityGenerator.filter_grouped_entities_by_type(
+            grouped_entities, "roles"
+        )
         == expected
     )

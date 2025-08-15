@@ -60,14 +60,18 @@ class SnowflakeSchemaBuilder:
         if len(self.warehouses) > 0:
             spec_yaml.append("warehouses:")
         for warehouse in self.warehouses:
-            spec_yaml.extend([f"  - {warehouse['name']}:", "      size: x-small"])
+            spec_yaml.extend(
+                [f"  - {warehouse['name']}:", "      size: x-small"]
+            )
             if warehouse["owner"] is not None:
                 spec_yaml.append(f"      owner: {warehouse['owner']}")
 
         if len(self.integrations) > 0:
             spec_yaml.append("integrations:")
         for integration in self.integrations:
-            spec_yaml.extend([f"  - {integration['name']}:", "      category: storage"])
+            spec_yaml.extend(
+                [f"  - {integration['name']}:", "      category: storage"]
+            )
             if integration["owner"] is not None:
                 spec_yaml.append(f"      owner: {integration['owner']}")
 
@@ -77,36 +81,60 @@ class SnowflakeSchemaBuilder:
     def _roles_generator(self, roles):
         spec_yaml = []
         for role in roles:
-            if (role["member_of_exclude"] or role["member_of_include"]) and role[
-                "member_of"
-            ]:
+            if (
+                role["member_of_exclude"] or role["member_of_include"]
+            ) and role["member_of"]:
                 raise KeyError(
                     "'member_of_include' and 'member_of_exclude' cannot be defined if 'member_of' is defined"
                 )
             elif role["member_of_exclude"] and role["member_of_include"]:
                 spec_yaml.extend(
-                    [f"  - {role['name']}:", "      member_of:", "        include:"]
+                    [
+                        f"  - {role['name']}:",
+                        "      member_of:",
+                        "        include:",
+                    ]
                 )
                 spec_yaml.extend(
-                    [f"          - {member}" for member in role["member_of_include"]]
+                    [
+                        f"          - {member}"
+                        for member in role["member_of_include"]
+                    ]
                 )
                 spec_yaml.extend(["        exclude:"])
                 spec_yaml.extend(
-                    [f"          - {member}" for member in role["member_of_exclude"]]
+                    [
+                        f"          - {member}"
+                        for member in role["member_of_exclude"]
+                    ]
                 )
             elif role["member_of_exclude"] and not role["member_of_include"]:
                 spec_yaml.extend(
-                    [f"  - {role['name']}:", "      member_of:", "        exclude:"]
+                    [
+                        f"  - {role['name']}:",
+                        "      member_of:",
+                        "        exclude:",
+                    ]
                 )
                 spec_yaml.extend(
-                    [f"          - {member}" for member in role["member_of_exclude"]]
+                    [
+                        f"          - {member}"
+                        for member in role["member_of_exclude"]
+                    ]
                 )
             elif role["member_of_include"] and not role["member_of_exclude"]:
                 spec_yaml.extend(
-                    [f"  - {role['name']}:", "      member_of:", "        include:"]
+                    [
+                        f"  - {role['name']}:",
+                        "      member_of:",
+                        "        include:",
+                    ]
                 )
                 spec_yaml.extend(
-                    [f"          - {member}" for member in role["member_of_include"]]
+                    [
+                        f"          - {member}"
+                        for member in role["member_of_include"]
+                    ]
                 )
             elif role["member_of"]:
                 spec_yaml.extend([f"  - {role['name']}:", "      member_of:"])
@@ -143,7 +171,9 @@ class SnowflakeSchemaBuilder:
                     for full_table_name in role["tables"]
                 ]
             )
-        elif role["permission_set"] == ["read", "write"] or role["permission_set"] == [
+        elif role["permission_set"] == ["read", "write"] or role[
+            "permission_set"
+        ] == [
             "write",
             "read",
         ]:
@@ -176,15 +206,21 @@ class SnowflakeSchemaBuilder:
                 name_parts = full_table_name.split(".")
                 database_name = name_parts[0] if 0 < len(name_parts) else None
                 schema_name = name_parts[1] if 1 < len(name_parts) else None
-                spec_yaml.extend([f"            - {database_name}.{schema_name}"])
+                spec_yaml.extend(
+                    [f"            - {database_name}.{schema_name}"]
+                )
         elif role["permission_set"] == ["write"]:
             spec_yaml.extend(["          write:"])
             for full_table_name in role["tables"]:
                 name_parts = full_table_name.split(".")
                 database_name = name_parts[0] if 0 < len(name_parts) else None
                 schema_name = name_parts[1] if 1 < len(name_parts) else None
-                spec_yaml.extend([f"            - {database_name}.{schema_name}"])
-        elif role["permission_set"] == ["read", "write"] or role["permission_set"] == [
+                spec_yaml.extend(
+                    [f"            - {database_name}.{schema_name}"]
+                )
+        elif role["permission_set"] == ["read", "write"] or role[
+            "permission_set"
+        ] == [
             "write",
             "read",
         ]:
@@ -193,13 +229,17 @@ class SnowflakeSchemaBuilder:
                 name_parts = full_table_name.split(".")
                 database_name = name_parts[0] if 0 < len(name_parts) else None
                 schema_name = name_parts[1] if 1 < len(name_parts) else None
-                spec_yaml.extend([f"            - {database_name}.{schema_name}"])
+                spec_yaml.extend(
+                    [f"            - {database_name}.{schema_name}"]
+                )
             spec_yaml.extend(["          write:"])
             for full_table_name in role["tables"]:
                 name_parts = full_table_name.split(".")
                 database_name = name_parts[0] if 0 < len(name_parts) else None
                 schema_name = name_parts[1] if 1 < len(name_parts) else None
-                spec_yaml.extend([f"            - {database_name}.{schema_name}"])
+                spec_yaml.extend(
+                    [f"            - {database_name}.{schema_name}"]
+                )
         else:
             raise ValueError("Must set the permission_set for table generation")
         return spec_yaml
@@ -218,7 +258,9 @@ class SnowflakeSchemaBuilder:
                 name_parts = full_table_name.split(".")
                 database_name = name_parts[0] if 0 < len(name_parts) else None
                 spec_yaml.extend([f"            - {database_name}"])
-        elif role["permission_set"] == ["read", "write"] or role["permission_set"] == [
+        elif role["permission_set"] == ["read", "write"] or role[
+            "permission_set"
+        ] == [
             "write",
             "read",
         ]:

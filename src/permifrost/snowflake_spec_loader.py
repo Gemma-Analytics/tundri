@@ -40,7 +40,9 @@ class SnowflakeSpecLoader:
 
         # Connect to Snowflake to make sure that the current user has correct
         # permissions
-        click.secho("Checking permissions on current snowflake connection", fg="green")
+        click.secho(
+            "Checking permissions on current snowflake connection", fg="green"
+        )
         self.check_permissions_on_snowflake_server(conn)
 
         # Connect to Snowflake to make sure that all entities defined in the
@@ -58,7 +60,9 @@ class SnowflakeSpecLoader:
         self.roles_granted_to_user: Dict[str, Any] = {}
 
         if not spec_test:
-            click.secho("Fetching granted privileges from Snowflake", fg="green")
+            click.secho(
+                "Fetching granted privileges from Snowflake", fg="green"
+            )
             self.get_privileges_from_snowflake_server(
                 conn,
                 roles=roles,
@@ -74,10 +78,12 @@ class SnowflakeSpecLoader:
             conn = SnowflakeConnector()
         error_messages = []
 
-        click.secho(f"  Current user is: {conn.get_current_user()}.", fg="green")
+        click.secho(
+            f"  Current user is: {conn.get_current_user()}.", fg="green"
+        )
 
         current_role = conn.get_current_role()
-        if not current_role in ["securityadmin", "accountadmin"]:
+        if current_role not in ["securityadmin", "accountadmin"]:
             error_messages.append(
                 "Current role is not securityadmin or accountadmin! "
                 "Permifrost expects to run as securityadmin or accountadmin, please update your connection settings."
@@ -136,7 +142,9 @@ class SnowflakeSpecLoader:
                         " Snowflake Server. Please create it before continuing."
                     )
         else:
-            logger.debug("`databases` not found in spec, skipping SHOW DATABASES call.")
+            logger.debug(
+                "`databases` not found in spec, skipping SHOW DATABASES call."
+            )
         return missing_entities, error_messages
 
     def check_schema_ref_entities(self, conn):
@@ -152,7 +160,9 @@ class SnowflakeSpecLoader:
                         " Snowflake Server. Please create it before continuing."
                     )
         else:
-            logger.debug("`schemas` not found in spec, skipping SHOW SCHEMAS call.")
+            logger.debug(
+                "`schemas` not found in spec, skipping SHOW SCHEMAS call."
+            )
         return missing_entities, error_messages
 
     def check_table_ref_entities(self, conn):
@@ -182,7 +192,9 @@ class SnowflakeSpecLoader:
                             " Snowflake Server. Please create it before continuing."
                         )
         else:
-            logger.debug("`tables` not found in spec, skipping SHOW TABLES/VIEWS call.")
+            logger.debug(
+                "`tables` not found in spec, skipping SHOW TABLES/VIEWS call."
+            )
         return missing_entities, error_messages
 
     def check_role_entities(self, conn):
@@ -242,11 +254,11 @@ class SnowflakeSpecLoader:
         for missing_entity in missing_entities["dbs"]:
             click.secho(f"Ignored missing db {missing_entity}")
             self.entities["databases"].remove(missing_entity)
-            
+
             # Some listed databases might not be present in the database_refs list
             if missing_entity in self.entities["database_refs"]:
                 self.entities["database_refs"].remove(missing_entity)
-            
+
             self.spec["databases"] = [
                 item
                 for item in self.spec["databases"]
@@ -262,23 +274,31 @@ class SnowflakeSpecLoader:
             click.secho(f"Ignored missing role {missing_entity}")
             self.entities["roles"].remove(missing_entity)
             self.spec["roles"] = [
-                item for item in self.spec["roles"] if missing_entity not in item.keys()
+                item
+                for item in self.spec["roles"]
+                if missing_entity not in item.keys()
             ]
             for role_name in self.spec["roles"]:
                 role = role_name[list(role_name.keys())[0]]
                 if "member_of" in role.keys():
                     role["member_of"] = [
-                        item for item in role["member_of"] if item != missing_entity
+                        item
+                        for item in role["member_of"]
+                        if item != missing_entity
                     ]
         for missing_entity in missing_entities["users"]:
             click.secho(f"Ignored missing user {missing_entity}")
             self.entities["users"].remove(missing_entity)
             self.spec["users"] = [
-                item for item in self.spec["users"] if missing_entity not in item.keys()
+                item
+                for item in self.spec["users"]
+                if missing_entity not in item.keys()
             ]
 
     def check_entities_on_snowflake_server(  # noqa
-        self, conn: Optional[SnowflakeConnector] = None, ignore_missing_entities=False
+        self,
+        conn: Optional[SnowflakeConnector] = None,
+        ignore_missing_entities=False,
     ) -> None:
         """
         Make sure that all [warehouses, integrations, dbs, schemas, tables, users, roles]
@@ -287,7 +307,7 @@ class SnowflakeSpecLoader:
         Raises a SpecLoadingError with all the errors found while checking
         Snowflake for missing entities.
 
-        If `ignore_missing_entities` is True, the missing entities are removed from the 
+        If `ignore_missing_entities` is True, the missing entities are removed from the
         spec and entities objects, so that downstream code can continue to run normally.
         """
         missing = {}
@@ -310,7 +330,7 @@ class SnowflakeSpecLoader:
             self.remove_missing_entities(missing)
             return
 
-        errors = list(
+        all_errors = list(
             itertools.chain(
                 errors["warehouses"],
                 errors["integrations"],
@@ -322,8 +342,8 @@ class SnowflakeSpecLoader:
             )
         )
 
-        if errors:
-            raise SpecLoadingError("\n".join(errors))
+        if all_errors:
+            raise SpecLoadingError("\n".join(all_errors))
 
     def get_role_privileges_from_snowflake_server(
         self,
@@ -356,7 +376,9 @@ class SnowflakeSpecLoader:
                             .extend(
                                 self.filter_to_database_refs(
                                     grant_on=grant_on,
-                                    filter_set=grant_results[role][privilege][grant_on],
+                                    filter_set=grant_results[role][privilege][
+                                        grant_on
+                                    ],
                                 )
                             )
                         )
@@ -387,9 +409,9 @@ class SnowflakeSpecLoader:
                                 .extend(
                                     self.filter_to_database_refs(
                                         grant_on=grant_on,
-                                        filter_set=grant_results[role][privilege][
-                                            grant_on
-                                        ],
+                                        filter_set=grant_results[role][
+                                            privilege
+                                        ][grant_on],
                                     )
                                 )
                             )
@@ -424,7 +446,9 @@ class SnowflakeSpecLoader:
                 if users and user not in users:
                     continue
                 logger.info(f"Fetching user privileges for user: {user}")
-                self.roles_granted_to_user[user] = conn.show_roles_granted_to_user(user)
+                self.roles_granted_to_user[
+                    user
+                ] = conn.show_roles_granted_to_user(user)
 
     def get_privileges_from_snowflake_server(
         self,
@@ -445,7 +469,9 @@ class SnowflakeSpecLoader:
 
         if "users" in run_list and not ignore_memberships:
             logger.info("Fetching user privileges from Snowflake")
-            self.get_user_privileges_from_snowflake_server(conn=conn, users=users)
+            self.get_user_privileges_from_snowflake_server(
+                conn=conn, users=users
+            )
 
         if "roles" in run_list:
             logger.info("Fetching role privileges from Snowflake")
@@ -490,7 +516,8 @@ class SnowflakeSpecLoader:
             return [
                 item
                 for item in filter_set
-                if item and ("." not in item or item.split(".")[0] in database_refs)
+                if item
+                and ("." not in item or item.split(".")[0] in database_refs)
             ]
 
     def generate_permission_queries(
@@ -572,7 +599,9 @@ class SnowflakeSpecLoader:
 
     # TODO: These functions are part of a refactor of the previous module,
     # but this still requires a fair bit of attention to cleanup
-    def process_roles(self, generator, entity_type, entity_name, config, all_entities):
+    def process_roles(
+        self, generator, entity_type, entity_name, config, all_entities
+    ):
         sql_commands = []
         click.secho(f"     Processing role {entity_name}", fg="green")
         sql_commands.extend(
@@ -581,7 +610,9 @@ class SnowflakeSpecLoader:
             )
         )
 
-        sql_commands.extend(generator.generate_grant_ownership(entity_name, config))
+        sql_commands.extend(
+            generator.generate_grant_ownership(entity_name, config)
+        )
 
         sql_commands.extend(
             generator.generate_grant_privileges_to_role(

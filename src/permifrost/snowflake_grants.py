@@ -65,7 +65,9 @@ class SnowflakeGrantsGenerator:
         """
 
         grants = (
-            self.grants_to_role.get(role, {}).get(privilege, {}).get(entity_type, [])
+            self.grants_to_role.get(role, {})
+            .get(privilege, {})
+            .get(entity_type, [])
         )
 
         if SnowflakeConnector.snowflaky(entity_name) in grants:
@@ -73,7 +75,9 @@ class SnowflakeGrantsGenerator:
 
         return False
 
-    def _generate_member_lists(self, config: Dict) -> Tuple[List[str], List[str]]:
+    def _generate_member_lists(
+        self, config: Dict
+    ) -> Tuple[List[str], List[str]]:
         """
         Generate a tuple with the member_include_list (e.g. roles that should be granted)
         and member_exclude_list (e.g. roles that should not be granted)
@@ -106,7 +110,9 @@ class SnowflakeGrantsGenerator:
 
         return (member_include_list, member_exclude_list)
 
-    def _generate_member_star_lists(self, all_entities: List, entity: str) -> List[str]:
+    def _generate_member_star_lists(
+        self, all_entities: List, entity: str
+    ) -> List[str]:
         """
         Generates the member include list when a * privilege is granted
 
@@ -118,7 +124,9 @@ class SnowflakeGrantsGenerator:
         conn = SnowflakeConnector()
         show_roles = conn.show_roles()
         member_include_list = [
-            role for role in show_roles if role in all_entities and role != entity
+            role
+            for role in show_roles
+            if role in all_entities and role != entity
         ]
         return member_include_list
 
@@ -150,7 +158,9 @@ class SnowflakeGrantsGenerator:
                 and granted_role in self.roles_granted_to_user[entity]
             ) or (
                 entity_type == "roles"
-                and self.is_granted_privilege(entity, "usage", "role", member_role)
+                and self.is_granted_privilege(
+                    entity, "usage", "role", member_role
+                )
             ):
                 already_granted = True
 
@@ -172,9 +182,13 @@ class SnowflakeGrantsGenerator:
                 {
                     "already_granted": already_granted,
                     "sql": GRANT_ROLE_TEMPLATE.format(
-                        role_name=SnowflakeConnector.snowflaky_user_role(member_role),
+                        role_name=SnowflakeConnector.snowflaky_user_role(
+                            member_role
+                        ),
                         type=grant_type,
-                        entity_name=SnowflakeConnector.snowflaky_user_role(entity),
+                        entity_name=SnowflakeConnector.snowflaky_user_role(
+                            entity
+                        ),
                     ),
                 }
             )
@@ -209,7 +223,9 @@ class SnowflakeGrantsGenerator:
     def _generate_revoke_sql_commands_for_role(self, rolename, member_of_list):
         sql_commands = []
         for granted_role in (
-            self.grants_to_role.get(rolename, {}).get("usage", {}).get("role", [])
+            self.grants_to_role.get(rolename, {})
+            .get("usage", {})
+            .get("role", [])
         ):
             if granted_role not in member_of_list:
                 snowflake_default_roles = [
@@ -262,17 +278,23 @@ class SnowflakeGrantsGenerator:
         if self.ignore_memberships:
             return sql_commands
 
-        member_include_list, member_exclude_list = self._generate_member_lists(config)
+        member_include_list, member_exclude_list = self._generate_member_lists(
+            config
+        )
 
         if len(member_include_list) == 1 and member_include_list[0] == '"*"':
             if not all_entities:
                 raise ValueError(
                     "Cannot generate grant roles if all_entities not provided"
                 )
-            member_include_list = self._generate_member_star_lists(all_entities, entity)
+            member_include_list = self._generate_member_star_lists(
+                all_entities, entity
+            )
 
         member_of_list = [
-            role for role in member_include_list if role not in member_exclude_list
+            role
+            for role in member_include_list
+            if role not in member_exclude_list
         ]
 
         sql_commands.extend(
@@ -282,19 +304,27 @@ class SnowflakeGrantsGenerator:
         )
         if entity_type == "users":
             sql_commands.extend(
-                self._generate_revoke_sql_commands_for_user(entity, member_of_list)
+                self._generate_revoke_sql_commands_for_user(
+                    entity, member_of_list
+                )
             )
         if entity_type == "roles":
             sql_commands.extend(
-                self._generate_revoke_sql_commands_for_role(entity, member_of_list)
+                self._generate_revoke_sql_commands_for_role(
+                    entity, member_of_list
+                )
             )
 
         return sql_commands
 
     def _generate_database_commands(self, role, config, shared_dbs, spec_dbs):
         databases = {
-            "read": config.get("privileges", {}).get("databases", {}).get("read", []),
-            "write": config.get("privileges", {}).get("databases", {}).get("write", []),
+            "read": config.get("privileges", {})
+            .get("databases", {})
+            .get("read", []),
+            "write": config.get("privileges", {})
+            .get("databases", {})
+            .get("write", []),
         }
 
         if len(databases.get("read", "")) == 0:
@@ -312,14 +342,21 @@ class SnowflakeGrantsGenerator:
             )
 
         database_commands = self.generate_database_grants(
-            role=role, databases=databases, shared_dbs=shared_dbs, spec_dbs=spec_dbs
+            role=role,
+            databases=databases,
+            shared_dbs=shared_dbs,
+            spec_dbs=spec_dbs,
         )
         return database_commands
 
     def _generate_schema_commands(self, role, config, shared_dbs, spec_dbs):
         schemas = {
-            "read": config.get("privileges", {}).get("schemas", {}).get("read", []),
-            "write": config.get("privileges", {}).get("schemas", {}).get("write", []),
+            "read": config.get("privileges", {})
+            .get("schemas", {})
+            .get("read", []),
+            "write": config.get("privileges", {})
+            .get("schemas", {})
+            .get("write", []),
         }
 
         if len(schemas.get("read", "")) == 0:
@@ -343,8 +380,12 @@ class SnowflakeGrantsGenerator:
 
     def _generate_table_commands(self, role, config, shared_dbs, spec_dbs):
         tables = {
-            "read": config.get("privileges", {}).get("tables", {}).get("read", []),
-            "write": config.get("privileges", {}).get("tables", {}).get("write", []),
+            "read": config.get("privileges", {})
+            .get("tables", {})
+            .get("read", []),
+            "write": config.get("privileges", {})
+            .get("tables", {})
+            .get("write", []),
         }
 
         if len(tables.get("read", "")) == 0:
@@ -457,14 +498,18 @@ class SnowflakeGrantsGenerator:
                         "sql": GRANT_PRIVILEGES_TEMPLATE.format(
                             privileges=priv,
                             resource_type="warehouse",
-                            resource_name=SnowflakeConnector.snowflaky(warehouse),
+                            resource_name=SnowflakeConnector.snowflaky(
+                                warehouse
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
                 )
         for priv in ["usage", "operate", "monitor"]:
             for granted_warehouse in (
-                self.grants_to_role.get(role, {}).get(priv, {}).get("warehouse", [])
+                self.grants_to_role.get(role, {})
+                .get(priv, {})
+                .get("warehouse", [])
             ):
                 if granted_warehouse not in warehouses:
                     sql_commands.append(
@@ -476,7 +521,9 @@ class SnowflakeGrantsGenerator:
                                 resource_name=SnowflakeConnector.snowflaky(
                                     granted_warehouse
                                 ),
-                                role=SnowflakeConnector.snowflaky_user_role(role),
+                                role=SnowflakeConnector.snowflaky_user_role(
+                                    role
+                                ),
                             ),
                         }
                     )
@@ -512,9 +559,15 @@ class SnowflakeGrantsGenerator:
                     ),
                 }
             )
-        print(self.grants_to_role.get(role, {}).get("usage", {}).get("integration", []))
+        print(
+            self.grants_to_role.get(role, {})
+            .get("usage", {})
+            .get("integration", [])
+        )
         for granted_integration in (
-            self.grants_to_role.get(role, {}).get("usage", {}).get("integration", [])
+            self.grants_to_role.get(role, {})
+            .get("usage", {})
+            .get("integration", [])
         ):
             if granted_integration not in integrations:
                 sql_commands.append(
@@ -534,9 +587,15 @@ class SnowflakeGrantsGenerator:
         return sql_commands
 
     def _generate_database_read_privs(
-        self, database: str, role: str, shared_dbs: Set[str], read_privileges: str
+        self,
+        database: str,
+        role: str,
+        shared_dbs: Set[str],
+        read_privileges: str,
     ) -> Dict:
-        already_granted = self.is_granted_privilege(role, "usage", "database", database)
+        already_granted = self.is_granted_privilege(
+            role, "usage", "database", database
+        )
 
         # If this is a shared database, we have to grant the "imported privileges"
         # privilege to the user and skip granting the specific permissions as
@@ -563,7 +622,11 @@ class SnowflakeGrantsGenerator:
             }
 
     def generate_database_grants(
-        self, role: str, databases: Dict[str, List], shared_dbs: Set, spec_dbs: Set
+        self,
+        role: str,
+        databases: Dict[str, List],
+        shared_dbs: Set,
+        spec_dbs: Set,
     ) -> List[Dict[str, Any]]:
         """
         Generate the GRANT and REVOKE statements for Databases
@@ -594,7 +657,9 @@ class SnowflakeGrantsGenerator:
         for database in databases.get("write", []):
             already_granted = (
                 self.is_granted_privilege(role, "usage", "database", database)
-                and self.is_granted_privilege(role, "monitor", "database", database)
+                and self.is_granted_privilege(
+                    role, "monitor", "database", database
+                )
                 and self.is_granted_privilege(
                     role, "create schema", "database", database
                 )
@@ -610,7 +675,9 @@ class SnowflakeGrantsGenerator:
                         "sql": GRANT_PRIVILEGES_TEMPLATE.format(
                             privileges="imported privileges",
                             resource_type="database",
-                            resource_name=SnowflakeConnector.snowflaky(database),
+                            resource_name=SnowflakeConnector.snowflaky(
+                                database
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -635,19 +702,24 @@ class SnowflakeGrantsGenerator:
         # Compare granted usage to full read/write usage set
         # and revoke missing ones
         usage_privs_on_db = (
-            self.grants_to_role.get(role, {}).get("usage", {}).get("database", [])
+            self.grants_to_role.get(role, {})
+            .get("usage", {})
+            .get("database", [])
         )
 
         for granted_database in usage_privs_on_db:
             # If it's a shared database, only revoke imported
             # We'll only know if it's a shared DB based on the spec
-            all_databases = databases.get("read", []) + databases.get("write", [])
+            all_databases = databases.get("read", []) + databases.get(
+                "write", []
+            )
             if granted_database not in spec_dbs:
                 # Skip revocation on database that are not defined in spec
                 continue
             # Revoke read/write permissions on shared databases
             elif (
-                granted_database not in all_databases and granted_database in shared_dbs
+                granted_database not in all_databases
+                and granted_database in shared_dbs
             ):
                 sql_commands.append(
                     {
@@ -682,7 +754,9 @@ class SnowflakeGrantsGenerator:
         # This also preserves the case where somebody switches write access
         # for read access
         monitor_privs_on_db = (
-            self.grants_to_role.get(role, {}).get("monitor", {}).get("database", [])
+            self.grants_to_role.get(role, {})
+            .get("monitor", {})
+            .get("database", [])
         )
 
         create_privs_on_db = (
@@ -769,7 +843,9 @@ class SnowflakeGrantsGenerator:
                             privileges=read_privileges,
                             resource_type="schema",
                             grouping_type="database",
-                            grouping_name=SnowflakeConnector.snowflaky(database),
+                            grouping_name=SnowflakeConnector.snowflaky(
+                                database
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -789,7 +865,9 @@ class SnowflakeGrantsGenerator:
                         "sql": GRANT_PRIVILEGES_TEMPLATE.format(
                             privileges=read_privileges,
                             resource_type="schema",
-                            resource_name=SnowflakeConnector.snowflaky(db_schema),
+                            resource_name=SnowflakeConnector.snowflaky(
+                                db_schema
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -848,7 +926,9 @@ class SnowflakeGrantsGenerator:
                             privileges=write_privileges,
                             resource_type="schema",
                             grouping_type="database",
-                            grouping_name=SnowflakeConnector.snowflaky(database),
+                            grouping_name=SnowflakeConnector.snowflaky(
+                                database
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -870,7 +950,9 @@ class SnowflakeGrantsGenerator:
                         "sql": GRANT_PRIVILEGES_TEMPLATE.format(
                             privileges=write_privileges,
                             resource_type="schema",
-                            resource_name=SnowflakeConnector.snowflaky(db_schema),
+                            resource_name=SnowflakeConnector.snowflaky(
+                                db_schema
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -903,7 +985,9 @@ class SnowflakeGrantsGenerator:
                             privileges=read_privileges,
                             resource_type="schema",
                             grouping_type="database",
-                            grouping_name=SnowflakeConnector.snowflaky(database_name),
+                            grouping_name=SnowflakeConnector.snowflaky(
+                                database_name
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -920,7 +1004,9 @@ class SnowflakeGrantsGenerator:
                         "sql": REVOKE_PRIVILEGES_TEMPLATE.format(
                             privileges=read_privileges,
                             resource_type="schema",
-                            resource_name=SnowflakeConnector.snowflaky(granted_schema),
+                            resource_name=SnowflakeConnector.snowflaky(
+                                granted_schema
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -930,7 +1016,11 @@ class SnowflakeGrantsGenerator:
 
     # TODO: This method is too complex, consider refactoring
     def generate_schema_grants(
-        self, role: str, schemas: Dict[str, List], shared_dbs: Set, spec_dbs: Set
+        self,
+        role: str,
+        schemas: Dict[str, List],
+        shared_dbs: Set,
+        spec_dbs: Set,
     ) -> List[Dict]:
         """
         Generate the GRANT and REVOKE statements for schemas
@@ -1005,7 +1095,9 @@ class SnowflakeGrantsGenerator:
         other_schema_grants = list()
         for privilege in other_privileges:
             other_schema_grants.extend(
-                self.grants_to_role.get(role, {}).get(privilege, {}).get("schema", [])
+                self.grants_to_role.get(role, {})
+                .get(privilege, {})
+                .get("schema", [])
             )
 
         for granted_schema in other_schema_grants:
@@ -1028,7 +1120,9 @@ class SnowflakeGrantsGenerator:
                             privileges=partial_write_privileges,
                             resource_type="schema",
                             grouping_type="database",
-                            grouping_name=SnowflakeConnector.snowflaky(database_name),
+                            grouping_name=SnowflakeConnector.snowflaky(
+                                database_name
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -1044,7 +1138,9 @@ class SnowflakeGrantsGenerator:
                         "sql": REVOKE_PRIVILEGES_TEMPLATE.format(
                             privileges=partial_write_privileges,
                             resource_type="schema",
-                            resource_name=SnowflakeConnector.snowflaky(granted_schema),
+                            resource_name=SnowflakeConnector.snowflaky(
+                                granted_schema
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -1080,17 +1176,23 @@ class SnowflakeGrantsGenerator:
             read_table_list = []
             read_view_list = []
 
-            fetched_schemas = conn.full_schema_list(f"{database_name}.{schema_name}")
+            fetched_schemas = conn.full_schema_list(
+                f"{database_name}.{schema_name}"
+            )
 
             # For grants at the database level for tables
-            future_database_table = "{database}.<table>".format(database=database_name)
+            future_database_table = "{database}.<table>".format(
+                database=database_name
+            )
             table_already_granted = self.is_granted_privilege(
                 role, read_privileges, "table", future_database_table
             )
             read_grant_tables_full.append(future_database_table)
 
             # For grants at the database level for views
-            future_database_view = "{database}.<view>".format(database=database_name)
+            future_database_view = "{database}.<view>".format(
+                database=database_name
+            )
             view_already_granted = self.is_granted_privilege(
                 role, read_privileges, "view", future_database_view
             )
@@ -1105,7 +1207,9 @@ class SnowflakeGrantsGenerator:
                             privileges=read_privileges,
                             resource_type="table",
                             grouping_type="database",
-                            grouping_name=SnowflakeConnector.snowflaky(database_name),
+                            grouping_name=SnowflakeConnector.snowflaky(
+                                database_name
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -1118,7 +1222,9 @@ class SnowflakeGrantsGenerator:
                             privileges=read_privileges,
                             resource_type="table",
                             grouping_type="database",
-                            grouping_name=SnowflakeConnector.snowflaky(database_name),
+                            grouping_name=SnowflakeConnector.snowflaky(
+                                database_name
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -1132,7 +1238,9 @@ class SnowflakeGrantsGenerator:
                             privileges=read_privileges,
                             resource_type="view",
                             grouping_type="database",
-                            grouping_name=SnowflakeConnector.snowflaky(database_name),
+                            grouping_name=SnowflakeConnector.snowflaky(
+                                database_name
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -1145,7 +1253,9 @@ class SnowflakeGrantsGenerator:
                             privileges=read_privileges,
                             resource_type="view",
                             grouping_type="database",
-                            grouping_name=SnowflakeConnector.snowflaky(database_name),
+                            grouping_name=SnowflakeConnector.snowflaky(
+                                database_name
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -1188,8 +1298,12 @@ class SnowflakeGrantsGenerator:
                                 privileges=read_privileges,
                                 resource_type="table",
                                 grouping_type="schema",
-                                grouping_name=SnowflakeConnector.snowflaky(schema),
-                                role=SnowflakeConnector.snowflaky_user_role(role),
+                                grouping_name=SnowflakeConnector.snowflaky(
+                                    schema
+                                ),
+                                role=SnowflakeConnector.snowflaky_user_role(
+                                    role
+                                ),
                             ),
                         }
                     )
@@ -1202,8 +1316,12 @@ class SnowflakeGrantsGenerator:
                                 privileges=read_privileges,
                                 resource_type="table",
                                 grouping_type="schema",
-                                grouping_name=SnowflakeConnector.snowflaky(schema),
-                                role=SnowflakeConnector.snowflaky_user_role(role),
+                                grouping_name=SnowflakeConnector.snowflaky(
+                                    schema
+                                ),
+                                role=SnowflakeConnector.snowflaky_user_role(
+                                    role
+                                ),
                             ),
                         }
                     )
@@ -1220,8 +1338,12 @@ class SnowflakeGrantsGenerator:
                                 privileges=read_privileges,
                                 resource_type="view",
                                 grouping_type="schema",
-                                grouping_name=SnowflakeConnector.snowflaky(schema),
-                                role=SnowflakeConnector.snowflaky_user_role(role),
+                                grouping_name=SnowflakeConnector.snowflaky(
+                                    schema
+                                ),
+                                role=SnowflakeConnector.snowflaky_user_role(
+                                    role
+                                ),
                             ),
                         }
                     )
@@ -1234,8 +1356,12 @@ class SnowflakeGrantsGenerator:
                                 privileges=read_privileges,
                                 resource_type="view",
                                 grouping_type="schema",
-                                grouping_name=SnowflakeConnector.snowflaky(schema),
-                                role=SnowflakeConnector.snowflaky_user_role(role),
+                                grouping_name=SnowflakeConnector.snowflaky(
+                                    schema
+                                ),
+                                role=SnowflakeConnector.snowflaky_user_role(
+                                    role
+                                ),
                             ),
                         }
                     )
@@ -1266,7 +1392,9 @@ class SnowflakeGrantsGenerator:
                         "sql": GRANT_PRIVILEGES_TEMPLATE.format(
                             privileges=read_privileges,
                             resource_type="table",
-                            resource_name=SnowflakeConnector.snowflaky(db_table),
+                            resource_name=SnowflakeConnector.snowflaky(
+                                db_table
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -1293,13 +1421,17 @@ class SnowflakeGrantsGenerator:
         return (sql_commands, read_grant_tables_full, read_grant_views_full)
 
     #  TODO: This method remains complex, could use extra refactoring
-    def _generate_table_write_grants(self, conn, tables, shared_dbs, role):  # noqa
+    def _generate_table_write_grants(
+        self, conn, tables, shared_dbs, role
+    ):  # noqa
         sql_commands = []
         write_grant_tables_full = []
         write_grant_views_full = []
 
         read_privileges = "select"
-        write_partial_privileges = "insert, update, delete, truncate, references"
+        write_partial_privileges = (
+            "insert, update, delete, truncate, references"
+        )
         write_privileges = f"{read_privileges}, {write_partial_privileges}"
         write_privileges_array = write_privileges.split(", ")
 
@@ -1324,11 +1456,17 @@ class SnowflakeGrantsGenerator:
             write_table_list = []
             write_view_list = []
 
-            fetched_schemas = conn.full_schema_list(f"{database_name}.{name_parts[1]}")
+            fetched_schemas = conn.full_schema_list(
+                f"{database_name}.{name_parts[1]}"
+            )
 
             # For grants at the database level
-            future_database_table = "{database}.<table>".format(database=database_name)
-            future_database_view = "{database}.<view>".format(database=database_name)
+            future_database_table = "{database}.<table>".format(
+                database=database_name
+            )
+            future_database_view = "{database}.<view>".format(
+                database=database_name
+            )
 
             table_already_granted = True
             for privilege in write_privileges_array:
@@ -1353,7 +1491,9 @@ class SnowflakeGrantsGenerator:
                             privileges=write_privileges,
                             resource_type="table",
                             grouping_type="database",
-                            grouping_name=SnowflakeConnector.snowflaky(database_name),
+                            grouping_name=SnowflakeConnector.snowflaky(
+                                database_name
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -1366,7 +1506,9 @@ class SnowflakeGrantsGenerator:
                             privileges=write_privileges,
                             resource_type="table",
                             grouping_type="database",
-                            grouping_name=SnowflakeConnector.snowflaky(database_name),
+                            grouping_name=SnowflakeConnector.snowflaky(
+                                database_name
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -1380,7 +1522,9 @@ class SnowflakeGrantsGenerator:
                             privileges="select",
                             resource_type="view",
                             grouping_type="database",
-                            grouping_name=SnowflakeConnector.snowflaky(database_name),
+                            grouping_name=SnowflakeConnector.snowflaky(
+                                database_name
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -1393,7 +1537,9 @@ class SnowflakeGrantsGenerator:
                             privileges="select",
                             resource_type="view",
                             grouping_type="database",
-                            grouping_name=SnowflakeConnector.snowflaky(database_name),
+                            grouping_name=SnowflakeConnector.snowflaky(
+                                database_name
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -1439,8 +1585,12 @@ class SnowflakeGrantsGenerator:
                                 privileges=write_privileges,
                                 resource_type="table",
                                 grouping_type="schema",
-                                grouping_name=SnowflakeConnector.snowflaky(schema),
-                                role=SnowflakeConnector.snowflaky_user_role(role),
+                                grouping_name=SnowflakeConnector.snowflaky(
+                                    schema
+                                ),
+                                role=SnowflakeConnector.snowflaky_user_role(
+                                    role
+                                ),
                             ),
                         }
                     )
@@ -1453,8 +1603,12 @@ class SnowflakeGrantsGenerator:
                                 privileges=write_privileges,
                                 resource_type="table",
                                 grouping_type="schema",
-                                grouping_name=SnowflakeConnector.snowflaky(schema),
-                                role=SnowflakeConnector.snowflaky_user_role(role),
+                                grouping_name=SnowflakeConnector.snowflaky(
+                                    schema
+                                ),
+                                role=SnowflakeConnector.snowflaky_user_role(
+                                    role
+                                ),
                             ),
                         }
                     )
@@ -1470,8 +1624,12 @@ class SnowflakeGrantsGenerator:
                                 privileges="select",
                                 resource_type="view",
                                 grouping_type="schema",
-                                grouping_name=SnowflakeConnector.snowflaky(schema),
-                                role=SnowflakeConnector.snowflaky_user_role(role),
+                                grouping_name=SnowflakeConnector.snowflaky(
+                                    schema
+                                ),
+                                role=SnowflakeConnector.snowflaky_user_role(
+                                    role
+                                ),
                             ),
                         }
                     )
@@ -1484,8 +1642,12 @@ class SnowflakeGrantsGenerator:
                                 privileges="select",
                                 resource_type="view",
                                 grouping_type="schema",
-                                grouping_name=SnowflakeConnector.snowflaky(schema),
-                                role=SnowflakeConnector.snowflaky_user_role(role),
+                                grouping_name=SnowflakeConnector.snowflaky(
+                                    schema
+                                ),
+                                role=SnowflakeConnector.snowflaky_user_role(
+                                    role
+                                ),
                             ),
                         }
                     )
@@ -1519,7 +1681,9 @@ class SnowflakeGrantsGenerator:
                         "sql": GRANT_PRIVILEGES_TEMPLATE.format(
                             privileges=write_privileges,
                             resource_type="table",
-                            resource_name=SnowflakeConnector.snowflaky(db_table),
+                            resource_name=SnowflakeConnector.snowflaky(
+                                db_table
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -1584,7 +1748,9 @@ class SnowflakeGrantsGenerator:
                 grouping_type = "database"
                 grouping_name = database_name
             else:
-                future_resource = f"{database_name}.{schema_name}.<{resource_type}>"
+                future_resource = (
+                    f"{database_name}.{schema_name}.<{resource_type}>"
+                )
                 grouping_type = "schema"
                 grouping_name = f"{database_name}.{schema_name}"
 
@@ -1606,7 +1772,9 @@ class SnowflakeGrantsGenerator:
                             privileges=privilege_set,
                             resource_type=resource_type,
                             grouping_type=grouping_type,
-                            grouping_name=SnowflakeConnector.snowflaky(grouping_name),
+                            grouping_name=SnowflakeConnector.snowflaky(
+                                grouping_name
+                            ),
                             role=SnowflakeConnector.snowflaky_user_role(role),
                         ),
                     }
@@ -1642,10 +1810,16 @@ class SnowflakeGrantsGenerator:
         write_grant_tables_full: List[str],
     ) -> List[Dict[str, Any]]:
         read_privileges = "select"
-        write_partial_privileges = "insert, update, delete, truncate, references"
+        write_partial_privileges = (
+            "insert, update, delete, truncate, references"
+        )
         sql_commands = []
         granted_resources = list(
-            set(self.grants_to_role.get(role, {}).get("select", {}).get("table", []))
+            set(
+                self.grants_to_role.get(role, {})
+                .get("select", {})
+                .get("table", [])
+            )
         )
 
         sql_commands.extend(
@@ -1660,7 +1834,11 @@ class SnowflakeGrantsGenerator:
             )
         )
         granted_resources = list(
-            set(self.grants_to_role.get(role, {}).get("select", {}).get("view", []))
+            set(
+                self.grants_to_role.get(role, {})
+                .get("select", {})
+                .get("view", [])
+            )
         )
         sql_commands.extend(
             self._generate_revoke_select_privs(
@@ -1677,10 +1855,14 @@ class SnowflakeGrantsGenerator:
         all_write_privs_granted_tables = []
         for privilege in write_partial_privileges.split(", "):
             table_names = (
-                self.grants_to_role.get(role, {}).get(privilege, {}).get("table", [])
+                self.grants_to_role.get(role, {})
+                .get(privilege, {})
+                .get("table", [])
             )
             all_write_privs_granted_tables += table_names
-        all_write_privs_granted_tables = list(set(all_write_privs_granted_tables))
+        all_write_privs_granted_tables = list(
+            set(all_write_privs_granted_tables)
+        )
 
         # Write Privileges
         # Only need to revoke write privileges for tables since SELECT is the
@@ -1736,7 +1918,11 @@ class SnowflakeGrantsGenerator:
         read_grant_views_full.extend(read_views)
 
         write_tables = tables.get("write", [])
-        write_command, write_table, write_views = self._generate_table_write_grants(
+        (
+            write_command,
+            write_table,
+            write_views,
+        ) = self._generate_table_write_grants(
             conn, write_tables, shared_dbs, role
         )
         sql_commands.extend(write_command)
@@ -1758,7 +1944,9 @@ class SnowflakeGrantsGenerator:
         )
         return sql_commands
 
-    def generate_alter_user(self, user: str, config: Dict[str, Any]) -> List[Dict]:
+    def generate_alter_user(
+        self, user: str, config: Dict[str, Any]
+    ) -> List[Dict]:
         """
         Generate the ALTER statements for USERs.
 
@@ -1831,7 +2019,9 @@ class SnowflakeGrantsGenerator:
             )
         return sql_commands
 
-    def _generate_ownership_grant_schema(self, conn, role, schema_refs) -> List[Dict]:
+    def _generate_ownership_grant_schema(
+        self, conn, role, schema_refs
+    ) -> List[Dict]:
         sql_commands = []
         for schema in schema_refs:
             name_parts = schema.split(".")
@@ -1858,8 +2048,12 @@ class SnowflakeGrantsGenerator:
                         "already_granted": already_granted,
                         "sql": GRANT_OWNERSHIP_TEMPLATE.format(
                             resource_type="schema",
-                            resource_name=SnowflakeConnector.snowflaky(db_schema),
-                            role_name=SnowflakeConnector.snowflaky_user_role(role),
+                            resource_name=SnowflakeConnector.snowflaky(
+                                db_schema
+                            ),
+                            role_name=SnowflakeConnector.snowflaky_user_role(
+                                role
+                            ),
                         ),
                     }
                 )
@@ -1937,7 +2131,9 @@ class SnowflakeGrantsGenerator:
 
         db_refs = config.get("owns", {}).get("databases")
         if db_refs:
-            db_ownership_grants = self._generate_ownership_grant_database(role, db_refs)
+            db_ownership_grants = self._generate_ownership_grant_database(
+                role, db_refs
+            )
             sql_commands.extend(db_ownership_grants)
 
         schema_refs = config.get("owns", {}).get("schemas")
