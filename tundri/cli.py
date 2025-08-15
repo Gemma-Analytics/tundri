@@ -59,7 +59,7 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Snowflake Manager - Drop, create and alter Snowflake objects and set permissions with Permifrost"
+        description="tundri - Drop, create and alter Snowflake objects and set permissions with Permifrost"
     )
     subparsers = parser.add_subparsers()
 
@@ -68,7 +68,7 @@ def main():
     parser_drop_create.add_argument(
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
-    parser_drop_create.add_argument("--dry", action="store_true")
+    parser_drop_create.add_argument("--dry", action="store_true", help="Run in dry mode")
     parser_drop_create.set_defaults(func=drop_create)
 
     # Permifrost functionality
@@ -76,7 +76,7 @@ def main():
     parser_drop_create.add_argument(
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
-    parser_drop_create.add_argument("--dry", action="store_true")
+    parser_drop_create.add_argument("--dry", action="store_true", help="Run in dry mode")
     parser_drop_create.set_defaults(func=permifrost)
 
     # Run both
@@ -84,7 +84,7 @@ def main():
     parser_drop_create.add_argument(
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
-    parser_drop_create.add_argument("--dry", action="store_true")
+    parser_drop_create.add_argument("--dry", action="store_true", help="Run in dry mode")
     parser_drop_create.set_defaults(func=run)
 
     args = parser.parse_args()
