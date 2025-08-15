@@ -54,12 +54,10 @@ jobs:
           pip install '.[dev]'
 
       - name: Build package
-        run: |
-          make dist-local
+        run: python -m build
 
       - name: Check package
-        run: |
-          twine check dist/*
+        run: twine check dist/*
 
       - name: Publish to Test PyPI
         if: inputs.target == 'test'

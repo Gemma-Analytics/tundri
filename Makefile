@@ -165,9 +165,6 @@ dist: compose-build
 	@docker-compose run permifrost /bin/bash \
 		-c "python setup.py sdist"
 
-dist-local:
-	python -m build
-
 docker-clean:
 	@docker-compose run permifrost /bin/bash \
 		-c "rm -rf dist"
