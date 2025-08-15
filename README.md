@@ -23,7 +23,6 @@ With only Permifrost, one would have to manually create the objects and then run
 
 ### Install
 
-Install using pip
 ```bash
 pip install tundri
 ```
