@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=45", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gemma.permifrost"
+version = "0.1.0"
+description = "Permifrost Permissions - Fork by Gemma Analytics"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Gemma Analytics", email = "info@gemmaanalytics.com"}
+]
+maintainers = [
+    {name = "Gemma Analytics", email = "info@gemmaanalytics.com"}
+]
+keywords = ["snowflake", "permissions", "database", "security"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Database",
+    "Topic :: Security",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "cerberus",
+    "colorama",
+    "coloredlogs",
+    "click",
+    "click-default-group",
+    "pyyaml",
+    "snowflake-connector-python[secure-local-storage]",
+    "snowflake-sqlalchemy==1.5.3",
+    "sqlalchemy",
+]
+
+[project.optional-dependencies]
+dev = [
+    "black",
+    "bumpversion",
+    "changelog-cli",
+    "coverage",
+    "flake8",
+    "isort",
+    "mypy",
+    "pre-commit",
+    "pytest",
+    "pytest-cov",
+    "pytest-mock",
+    "types-PyYAML",
+]
+
+[project.scripts]
+permifrost = "permifrost.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/Gemma-Analytics/permifrost"
+Repository = "https://github.com/Gemma-Analytics/permifrost"
+Documentation = "https://github.com/Gemma-Analytics/permifrost"
+Issues = "https://github.com/Gemma-Analytics/permifrost/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.txt", "*.md", "*.yml", "*.yaml"]
