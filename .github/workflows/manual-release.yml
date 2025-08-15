@@ -1,0 +1,81 @@
+name: Manual Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      version_type:
+        description: "Type of version bump (major, minor, patch)"
+        required: true
+        default: "patch"
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Bump version
+        id: bump_version
+        run: |
+          CURRENT_VERSION=$(grep '^version = ' pyproject.toml | sed -E "s/version = \"([0-9]+\.[0-9]+\.[0-9]+)\"/\1/")
+          echo "Current version: $CURRENT_VERSION"
+
+          # Determine the version type to bump (major, minor, patch)
+          VERSION_TYPE=${{ github.event.inputs.version_type }}
+          IFS='.' read -r MAJOR MINOR PATCH <<< "$CURRENT_VERSION"
+
+          if [ "$VERSION_TYPE" == "major" ]; then
+            MAJOR=$((MAJOR + 1))
+            MINOR=0
+            PATCH=0
+          elif [ "$VERSION_TYPE" == "minor" ]; then
+            MINOR=$((MINOR + 1))
+            PATCH=0
+          elif [ "$VERSION_TYPE" == "patch" ]; then
+            PATCH=$((PATCH + 1))
+          else
+            echo "Invalid version type: $VERSION_TYPE"
+            exit 1
+          fi
+
+          NEW_VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "New version: $NEW_VERSION"
+
+          # Update pyproject.toml with the new version
+          sed -i "s/version = \"$CURRENT_VERSION\"/version = \"$NEW_VERSION\"/" pyproject.toml
+
+          echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
+
+      - name: Create release branch
+        id: create_branch
+        run: |
+          NEW_VERSION=${{ env.new_version }}
+          BRANCH_NAME="release/v$NEW_VERSION"
+          git checkout -b "$BRANCH_NAME"
+          git push origin "$BRANCH_NAME"
+          echo "branch_name=$BRANCH_NAME" >> $GITHUB_ENV
+
+      - name: Create pull request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          branch: ${{ env.branch_name }}
+          base: main
+          title: "Release ${{ env.new_version }}"
+          body: |
+            This PR bumps the version to ${{ env.new_version }} and prepares the release.
+
+      # Tag and release creation will be handled by on-release-merge.yml workflow
+      # when this PR is merged
