@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "gemma.permifrost"
-version = "0.1.2"
+version = "0.1.3"
 description = "Permifrost Permissions - Fork by Gemma Analytics"
 readme = "README.md"
 license = {text = "MIT"}

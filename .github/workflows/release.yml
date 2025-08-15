@@ -145,6 +145,13 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
         run: twine upload dist/*
 
+      - name: Get version
+        if: steps.check_version.outputs.version_changed == 'true'
+        id: get_version
+        run: |
+          version=$(cat VERSION)
+          echo "version=$version" >> $GITHUB_OUTPUT
+
       - name: Create Release
         if: steps.check_version.outputs.version_changed == 'true'
         uses: actions/create-release@v1
@@ -166,10 +173,3 @@ jobs:
             **PyPI URL:** https://pypi.org/project/gemma.permifrost/
           draft: false
           prerelease: false
-
-      - name: Get version
-        if: steps.check_version.outputs.version_changed == 'true'
-        id: get_version
-        run: |
-          version=$(cat VERSION)
-          echo "version=$version" >> $GITHUB_OUTPUT

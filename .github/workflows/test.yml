@@ -8,16 +8,6 @@ on:
       - 'tests/**'
       - 'setup.py'
       - 'pyproject.toml'
-  push:
-    branches:
-      - main
-      - master
-    paths:
-      - 'VERSION'
-      - 'src/**'
-      - 'tests/**'
-      - 'setup.py'
-      - 'pyproject.toml'
 
 env:
   PYTHON_VERSION: "3.10"
