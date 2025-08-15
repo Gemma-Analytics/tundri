@@ -20,6 +20,10 @@ log = logging.getLogger(__name__)
 log.setLevel("INFO")
 console = Console()
 
+# Suppress urllib3 connection warnings from Snowflake connector
+logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
+logging.getLogger("snowflake.connector.vendored.urllib3.connectionpool").setLevel(logging.ERROR)
+
 
 class ConfigurationError(Exception):
     pass
@@ -199,6 +203,6 @@ def run_command(command):
 
 
 def log_dry_run_info():
-    console.log(20 * "-")
+    console.log(80 * "-")
     console.log("[bold]Executing in [yellow]dry run mode[/yellow][/bold]")
-    console.log(20 * "-")
+    console.log(80 * "-")
