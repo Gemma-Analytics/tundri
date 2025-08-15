@@ -18,7 +18,6 @@ With only Permifrost, one would have to manually create the objects and then run
 
 ### Prerequisites
 
-- [uv](https://docs.astral.sh/uv/)
 - Credentials to a Snowflake account with the `securityadmin` role
 - A Permifrost spec file
 
