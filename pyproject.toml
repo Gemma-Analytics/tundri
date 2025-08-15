@@ -33,7 +33,7 @@ dependencies = [
     "cerberus",
     "colorama",
     "coloredlogs",
-    "click",
+    "click==8.0.1",
     "click-default-group",
     "pyyaml",
     "snowflake-connector-python[secure-local-storage]",
@@ -51,9 +51,9 @@ dev = [
     "isort",
     "mypy",
     "pre-commit",
-    "pytest",
-    "pytest-cov",
-    "pytest-mock",
+    "pytest==6.2.5",
+    "pytest-cov==2.12.1",
+    "pytest-mock==3.6.1",
     "types-PyYAML",
 ]
 
