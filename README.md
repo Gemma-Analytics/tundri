@@ -9,6 +9,9 @@
 Permifrost is great at managing permissions, but it doesn't create or alter objects. As [GitLab's data team handbook](https://handbook.gitlab.com/handbook/enterprise-data/platform/permifrost/) states:
 > Object creation and deletion is not managed by permifrost
 
+With Permifrost only, one would have to manually create the objects and then run Permifrost to set the permissions. This is error prone and time consuming. That is where tundri comes in.
+
+### tundri in a nutshell
 tundri reads the Permifrost spec file and compares with the current state of the Snowflake account. It then creates, drops, and alters the objects to match the spec file. It does so by leveraging Permifrost's YAML `meta` tags. Once the objects are created, tundri runs Permifrost to set the permissions.
 
 ## Getting started
