@@ -23,12 +23,7 @@ With only Permifrost, one would have to manually create the objects and then run
 
 ### Install
 
-With uv
-```bash
-uv add tundri
-```
-
-With pip
+Install using pip
 ```bash
 pip install tundri
 ```
@@ -64,6 +59,11 @@ tundri run --permifrost_spec_path examples/permifrost.yml --dry
 #### Normal run
 ```bash
 tundri run --permifrost_spec_path examples/permifrost.yml
+```
+
+#### Getting help
+```bash
+tundri --help
 ```
 
 ## Development
