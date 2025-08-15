@@ -99,7 +99,6 @@ The release process is automated using GitHub Actions. Here's how it works:
 
 1. **Adding new features or bug fixes**
    - PR tests run automatically to verify the changes on each PR
-   - The package is published to TestPyPI for testing
    - Multiple PRs can be merged to main until a release-ready state is reached
 
 1. **Initiating a Release**
