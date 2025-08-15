@@ -314,7 +314,7 @@ class EntityGenerator:
             for db_name, config in db_entry.items():
                 self.entities["databases"].add(db_name)
                 if "shared" in config:
-                    if type(config["shared"]) == bool:
+                    if isinstance(config["shared"], bool):
                         if config["shared"]:
                             self.entities["shared_databases"].add(db_name)
                     else:
