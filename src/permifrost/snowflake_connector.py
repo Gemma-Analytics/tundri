@@ -386,7 +386,7 @@ class SnowflakeConnector:
                 "Object identifier is Null",
                 SyntaxWarning,
             )
-        
+
         new_name_parts = []
 
         for part in name_parts:

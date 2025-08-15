@@ -77,7 +77,7 @@ class SnowflakeSpecLoader:
         click.secho(f"  Current user is: {conn.get_current_user()}.", fg="green")
 
         current_role = conn.get_current_role()
-        if not current_role in ["securityadmin", "accountadmin"]:
+        if current_role not in ["securityadmin", "accountadmin"]:
             error_messages.append(
                 "Current role is not securityadmin or accountadmin! "
                 "Permifrost expects to run as securityadmin or accountadmin, please update your connection settings."
@@ -242,11 +242,11 @@ class SnowflakeSpecLoader:
         for missing_entity in missing_entities["dbs"]:
             click.secho(f"Ignored missing db {missing_entity}")
             self.entities["databases"].remove(missing_entity)
-            
+
             # Some listed databases might not be present in the database_refs list
             if missing_entity in self.entities["database_refs"]:
                 self.entities["database_refs"].remove(missing_entity)
-            
+
             self.spec["databases"] = [
                 item
                 for item in self.spec["databases"]
@@ -287,7 +287,7 @@ class SnowflakeSpecLoader:
         Raises a SpecLoadingError with all the errors found while checking
         Snowflake for missing entities.
 
-        If `ignore_missing_entities` is True, the missing entities are removed from the 
+        If `ignore_missing_entities` is True, the missing entities are removed from the
         spec and entities objects, so that downstream code can continue to run normally.
         """
         missing = {}
@@ -310,7 +310,7 @@ class SnowflakeSpecLoader:
             self.remove_missing_entities(missing)
             return
 
-        errors = list(
+        all_errors = list(
             itertools.chain(
                 errors["warehouses"],
                 errors["integrations"],
@@ -322,8 +322,8 @@ class SnowflakeSpecLoader:
             )
         )
 
-        if errors:
-            raise SpecLoadingError("\n".join(errors))
+        if all_errors:
+            raise SpecLoadingError("\n".join(all_errors))
 
     def get_role_privileges_from_snowflake_server(
         self,
