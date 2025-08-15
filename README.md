@@ -115,6 +115,6 @@ The release process is automated using GitHub Actions. Here's how it works:
 The process requires the following GitHub secrets to be configured:
 - `PYPI_API_TOKEN`: For production PyPI publishing
 - `TEST_PYPI_API_TOKEN`: For TestPyPI publishing
-- `SNOWFLAKE_USER`: For running tests
+- `SNOWFLAKE_*`: Snowflake credentials for running tests
 
 For full details on the release workflow, see [RELEASE_WORKFLOW.md](docs/RELEASE_WORKFLOW.md).
