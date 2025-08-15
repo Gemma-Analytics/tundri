@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/images/logo.jpg" alt="Snowflake Manager Logo" width="200">
+  <img src="docs/images/logo.jpg" alt="tundri Logo" width="200">
 </div>
 
 **tundri** is a Python package to declaratively create, drop, and alter Snowflake objects and manage their permissions with [Permifrost](https://gitlab.com/gitlab-data/permifrost).
