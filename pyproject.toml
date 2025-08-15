@@ -45,6 +45,7 @@ dependencies = [
 dev = [
     "black==22.3.0",
     "bumpversion",
+    "build",
     "changelog-cli",
     "coverage",
     "flake8",
@@ -54,6 +55,7 @@ dev = [
     "pytest==6.2.5",
     "pytest-cov==2.12.1",
     "pytest-mock==3.6.1",
+    "twine",
     "types-PyYAML",
 ]
 
