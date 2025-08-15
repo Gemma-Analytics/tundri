@@ -24,12 +24,12 @@ With only Permifrost, one would have to manually create the objects and then run
 
 ### Install
 
-With uv:
+With uv
 ```bash
 uv add tundri
 ```
 
-With pip:
+With pip
 ```bash
 pip install tundri
 ```
