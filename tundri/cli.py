@@ -64,7 +64,7 @@ def main():
     subparsers = parser.add_subparsers()
 
     # Drop/create functionality
-    parser_drop_create = subparsers.add_parser("drop_create")
+    parser_drop_create = subparsers.add_parser("drop_create", help="Drop, create and alter Snowflake objects")
     parser_drop_create.add_argument(
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
@@ -72,7 +72,7 @@ def main():
     parser_drop_create.set_defaults(func=drop_create)
 
     # Permifrost functionality
-    parser_drop_create = subparsers.add_parser("permifrost")
+    parser_drop_create = subparsers.add_parser("permifrost", help="Run Permifrost")
     parser_drop_create.add_argument(
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
@@ -80,7 +80,7 @@ def main():
     parser_drop_create.set_defaults(func=permifrost)
 
     # Run both
-    parser_drop_create = subparsers.add_parser("run")
+    parser_drop_create = subparsers.add_parser("run", help="Run drop_create and then permifrost")
     parser_drop_create.add_argument(
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
