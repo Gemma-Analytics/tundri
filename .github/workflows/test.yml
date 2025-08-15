@@ -1,0 +1,104 @@
+name: Test Package
+
+on:
+  pull_request:
+    paths:
+      - 'VERSION'
+      - 'src/**'
+      - 'tests/**'
+      - 'setup.py'
+      - 'pyproject.toml'
+  push:
+    branches:
+      - main
+      - master
+    paths:
+      - 'VERSION'
+      - 'src/**'
+      - 'tests/**'
+      - 'setup.py'
+      - 'pyproject.toml'
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.8", "3.9", "3.10", "3.11"]
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Run linting
+        run: |
+          flake8 src/ tests/
+          isort --check-only src/ tests/
+          black --check src/ tests/
+
+      - name: Run type checking
+        run: |
+          mypy src/
+
+      - name: Run tests
+        run: |
+          pytest tests/ -v --cov=src/ --cov-report=xml
+
+      - name: Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+
+  build-test:
+    name: Test Build
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.event_name == 'push'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: |
+          python -m build
+
+      - name: Check package
+        run: |
+          twine check dist/*
+
+      - name: Test package installation
+        run: |
+          pip install dist/*.whl
+          permifrost --help
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: dist-files
+          path: dist/
+          retention-days: 1
