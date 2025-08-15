@@ -25,6 +25,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.pull_request.head.ref }}
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -39,10 +40,17 @@ jobs:
       - name: Check if VERSION file changed
         id: check_version
         run: |
+          # Get current version from VERSION file
+          CURRENT_VERSION=$(cat VERSION)
+          echo "Current version in VERSION file: $CURRENT_VERSION"
+          
+          # Check if VERSION file changed in this PR
           if git diff --name-only ${{ github.event.pull_request.base.sha }}..${{ github.event.pull_request.head.sha }} | grep -q "VERSION"; then
             echo "version_changed=true" >> $GITHUB_OUTPUT
+            echo "✅ VERSION file was modified in this PR - proceeding with release"
           else
             echo "version_changed=false" >> $GITHUB_OUTPUT
+            echo "❌ VERSION file was not modified in this PR - skipping release"
           fi
 
       - name: Build package
@@ -94,6 +102,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -108,10 +118,17 @@ jobs:
       - name: Check if VERSION file changed
         id: check_version
         run: |
+          # Get current version from VERSION file
+          CURRENT_VERSION=$(cat VERSION)
+          echo "Current version in VERSION file: $CURRENT_VERSION"
+          
+          # Check if VERSION file changed in this commit
           if git diff --name-only HEAD~1..HEAD | grep -q "VERSION"; then
             echo "version_changed=true" >> $GITHUB_OUTPUT
+            echo "✅ VERSION file was modified in this commit - proceeding with release"
           else
             echo "version_changed=false" >> $GITHUB_OUTPUT
+            echo "❌ VERSION file was not modified in this commit - skipping release"
           fi
 
       - name: Build package
