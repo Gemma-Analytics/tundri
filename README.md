@@ -1,3 +1,6 @@
+> [!NOTE] 
+> This is a fork by Gemma Analytics of the original Permifrost project. The motivation is to use it in tandem with [tundri](https://github.com/Gemma-Analytics/tundri).
+
 # `permifrost`
 
 We welcome contributions, so please feel free to submit MRs or [issues](https://gitlab.com/gitlab-data/permifrost/-/issues/new) if you'd like to help in any way. To get started with contributions read the [Contributing](#contributing) section at the bottom of this README to get started.
