@@ -1,0 +1,22 @@
+version: "1.0"
+
+users:
+  - test_user:
+      can_login: yes
+      member_of:
+        - userrole_test
+      meta:
+        default_role: USERROLE_TEST
+        default_warehouse: test_warehouse
+        password: 1passwordvault
+        must_change_password: true
+        rsa_public_key: |
+          -----BEGIN PUBLIC KEY-----
+          MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAorPOOOdYipGVCUWbV1Fj
+          Aw4+2LM9ePVk/yX8sIqrbhzE/6X4Q3W65C2xkB+UA9WfqoqVTIwvran9ElQj05sk
+          Ev8RTv0897BTXm3x595lC0X/g1f13m7IImzLs2/lNT43zH9ILMwVnWk8WzMbaSSJ
+          tVdmaM2MExwMUgem1XEx/Fb5ucA1BgvXbJ9a2SY21VQ/n4WwqAdgjR3UoBZR2Dje
+          Zg38Sia+Ripmigopapm5zdOJCvkv1qdvK1uV4d357qGxd26S1N1E59YZ5+xliK93
+          g16q9wXNTNDnwtbW4jtirU2VwTelLKafd6pv648oSpjVbsCMA0WbL99QPd+7JRwh
+          vwIDAQAB
+          -----END PUBLIC KEY-----

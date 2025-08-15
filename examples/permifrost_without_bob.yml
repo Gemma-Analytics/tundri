@@ -1,0 +1,364 @@
+version: "1.0"
+
+databases:
+  # System Databases
+  - snowflake:
+      shared: yes
+  - snowflake_sample_data:
+      shared: yes
+  - permifrost:
+      shared: no
+
+  # Production Databases
+  - prod_raw:
+      shared: no  
+  - prod_analytics:
+      shared: no
+
+  # Development Databases (one per developing user)
+  - dev_bijan_raw:
+      shared: no
+  - dev_bijan_analytics:
+      shared: no
+  - dev_lui_raw:
+      shared: no
+  - dev_lui_analytics:
+      shared: no
+
+  # In case the client uses dbt Cloud
+  - dev_cloud:
+      shared: no
+
+warehouses:
+  # The name "warehouse" is misleading. These are compute units. Think of them as
+  # virtual machines or servers that are spun up and down at will.
+  # Billing can best be analytized split by warehouse, hence a certain granularity is useful.
+  - load:
+      size: x-small
+      meta:
+        warehouse_size: x-small  # Add size as meta tag as well
+        warehouse_type: standard
+        auto_suspend: 60
+        auto_resume: true
+        initially_suspended: true
+        statement_timeout_in_seconds: 1200
+  - transform:
+      size: x-small
+      meta:
+        warehouse_size: x-small
+        warehouse_type: standard
+        auto_suspend: 60
+        auto_resume: true
+        initially_suspended: true
+        statement_timeout_in_seconds: 1200
+  - report:
+      size: x-small
+      meta:
+        warehouse_size: x-small
+        warehouse_type: standard
+        auto_suspend: 60
+        auto_resume: true
+        initially_suspended: true
+        statement_timeout_in_seconds: 1200
+  - develop:
+      size: x-small
+      meta:
+        warehouse_size: x-small
+        warehouse_type: standard
+        auto_suspend: 60
+        auto_resume: true
+        initially_suspended: true
+        statement_timeout_in_seconds: 1200
+  - admin:
+      size: x-small
+      meta:
+        warehouse_size: x-small
+        warehouse_type: standard
+        auto_suspend: 60
+        auto_resume: true
+        initially_suspended: true
+        statement_timeout_in_seconds: 1200
+
+roles:
+  # System Roles Def
+  - public: {}
+  - orgadmin:
+      warehouses:
+        - admin
+  - accountadmin:
+      member_of:
+        - permifrost
+        - securityadmin
+        - sysadmin
+      warehouses:
+        - admin
+  - permifrost:
+      member_of:
+        - securityadmin
+        - sysadmin
+        # Required to be able to create and destroy objects
+        - ops_role_owner
+        - userrole_role_owner
+      warehouses:
+        - admin
+  - securityadmin:
+      member_of:
+        - useradmin
+      warehouses:
+        - admin
+  - sysadmin:
+      warehouses:
+        - admin
+  - useradmin:
+      warehouses:
+        - admin
+
+  - ops_role_owner:
+      # Should be member of all ops roles directly or indirectly
+      # Ops roles are all roles that are not system roles (above) or user roles
+      # (each user is only assigned one role - their user role - and any other roles are added to that user role)
+      member_of:  ### TBU ###
+        - loader
+        - transformer
+        - reporter
+        - developer
+        - analyst
+  - userrole_role_owner:
+      # Should be member of all userrole roles
+      member_of:   ### TBU ###
+        # Except for user roles who are member of high-level system roles (otherwise it fails with "would create a cycle")
+        # - userrole_bijan
+        # - userrole_lui
+        - userrole_dev_cloud # For testing only - should be a real human dev (e.g. Bob or Alice, who is not member of high-level system roles)
+
+  # Operations Roles
+  # When adding a role: add the role to member_of of ops_role_owner
+  - loader:
+      # Used by production data loading processes
+      warehouses:
+        - load
+      owns:
+        databases:
+          - prod_raw
+        schemas:
+          - prod_raw.*
+        tables:
+          - prod_raw.*.*
+
+  - transformer:
+      # Used by dbt for production runs
+      warehouses:
+        - transform
+      owns:
+        databases:
+          # Database for production dbt runs
+          - prod_analytics
+        schemas:
+          - prod_analytics.*
+        tables:
+          - prod_analytics.*.*
+      privileges:
+        databases:
+          read:
+            - prod_raw
+        schemas:
+          read:
+            - prod_raw.*
+        tables:
+          read:
+            - prod_raw.*.*
+
+  - reporter:
+      # Used by BI Tool to read data
+      warehouses:
+        - report
+      privileges:
+        databases:
+          read:
+            - prod_analytics
+        schemas:
+          read:
+            - prod_analytics.reporting
+        tables:
+          read:
+            - prod_analytics.reporting.*
+
+  - developer:
+      # Base role with privileges for all developers - user roles should be members
+      warehouses:
+        - develop
+      privileges:
+        databases:
+          read:
+            - prod_raw
+        schemas:
+          read:
+            - prod_raw.*
+        tables:
+          read:
+            - prod_raw.*.*
+
+  - analyst:
+      # Base role with privileges for all analysts - user roles should be members
+      warehouses:
+        - report
+      privileges:
+        databases:
+          read:
+            - prod_analytics
+        schemas:
+          read:
+            # Only allow read access to reporting Schema
+            - prod_analytics.reporting
+        tables:
+          read:
+            - prod_analytics.reporting.*
+
+  ## User roles
+  # When adding a role for a new user: add the role to member_of of userrole_role_owner
+  # Do not add accountadmin or orgadmin roles here, these need to be added
+  # directly to the user
+
+  - userrole_bijan:
+      member_of:
+        - developer
+        - loader
+        - analyst
+        - transformer
+      owns:
+        databases:
+          - dev_bijan_raw
+          - dev_bijan_analytics
+        schemas:
+          - dev_bijan_raw.*
+          - dev_bijan_analytics.*
+        tables:
+          - dev_bijan_raw.*.*
+          - dev_bijan_analytics.*.*
+
+  - userrole_lui:
+      member_of:
+        - developer
+        - analyst
+      owns:
+        databases:
+          - dev_lui_raw
+          - dev_lui_analytics
+        schemas:
+          - dev_lui_raw.*
+          - dev_lui_analytics.*
+        tables:
+          - dev_lui_raw.*.*
+          - dev_lui_analytics.*.*
+
+  - userrole_dev_cloud:
+      member_of:
+        - developer
+      owns:
+        databases:
+          - dev_cloud
+        schemas:
+          - dev_cloud.*
+        tables:
+          - dev_cloud.*.*
+
+users:
+  # System users
+  - snowflake:  # Add this user to avoid Permifrost dropping it
+      can_login: yes
+      meta:
+        default_role: sysadmin
+        password: 1passwordvault
+        must_change_password: true
+  - permifrost:
+      can_login: yes
+      member_of:
+        - permifrost
+      meta:
+        default_role: permifrost
+        password: 1passwordvault
+        must_change_password: true
+
+  # Production processes users
+  - airbyte:
+      can_login: yes
+      member_of:
+        - loader
+      meta:
+        default_role: loader
+        password: 1passwordvault
+        must_change_password: true
+  - airflow:
+      can_login: yes
+      member_of:
+        - loader
+      meta:
+        default_role: loader
+        password: 1passwordvault
+        must_change_password: true
+  - dbt_cloud:  # for production runs
+      can_login: yes
+      member_of:
+        - transformer
+      meta:
+        default_role: transformer
+        password: 1passwordvault
+        must_change_password: true
+  - metabase:
+      can_login: yes
+      member_of:
+        - reporter
+      meta:
+        default_role: reporter
+        password: 1passwordvault
+        must_change_password: true
+
+  # Dbt cloud dev user
+  - dbt_cloud_dev:  # for dev runs
+      can_login: yes
+      member_of:
+        - userrole_dev_cloud
+        - transformer
+        - developer
+      meta:
+        default_role: dev_cloud
+        password: 1passwordvault
+        must_change_password: true
+
+  # Human users
+  - admin:  # overall admin user for the client
+      can_login: yes
+      member_of:
+        - sysadmin
+        - securityadmin
+        - accountadmin
+        - permifrost
+        - useradmin
+        - orgadmin
+      meta:
+        default_role: sysadmin
+        password: 1passwordvault
+        must_change_password: true
+
+  - bijan:
+      can_login: yes
+      member_of:
+        # All roles are assigned to the userrole...
+        - userrole_bijan
+        # ... except accountadmin and orgadmin roles, which are assigned directly
+        - accountadmin
+        - orgadmin
+      meta:
+        default_role: userrole_bijan
+        password: 1passwordvault
+        must_change_password: true
+  - lui:
+      can_login: yes
+      member_of:
+        - userrole_lui
+        - accountadmin
+      meta:
+        default_role: userrole_lui
+        default_warehouse: develop
+        password: 1passwordvault
+        must_change_password: true

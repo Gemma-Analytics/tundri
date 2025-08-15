@@ -1,0 +1,21 @@
+version: "1.0"
+
+warehouses:
+  - load:
+      size: x-small
+      meta:
+        # warehouse_size: x-small  # Add size as meta tag as well
+        warehouse_type: standard
+        # auto_suspend: 60
+        auto_resume: true
+        initially_suspended: true
+        statement_timeout_in_seconds: 1200
+
+users:
+  - bob:
+      can_login: yes
+      member_of:
+        - userrole_bob
+      meta:
+        # default_role: userrole_bob
+        default_warehouse: develop
