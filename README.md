@@ -30,7 +30,7 @@ pip install tundri
 ### Configure
 
 #### Permifrost
-Add a valid Permifrost spec file to your repository. You can use the example provided in the `examples` folder.
+Add a valid [Permifrost spec file](https://gitlab.com/gitlab-data/permifrost#spec_file) to your repository. You can use the files in the `examples` folder as reference.
 
 #### Snowflake
 Set up your Snowflake connection details in the environment variables listed below.
