@@ -90,3 +90,32 @@ Dry run with the example spec file
 ```bash
 uv run tundri run --dry -p examples/permifrost.yml
 ```
+
+## Contributing
+
+### Release process
+
+The release process is automated using GitHub Actions. Here's how it works:
+
+1. **Adding new features or bug fixes**
+   - PR tests run automatically to verify the changes on each PR
+   - The package is published to TestPyPI for testing
+   - Multiple PRs can be merged to main until a release-ready state is reached
+
+1. **Initiating a Release**
+   - A maintainer triggers the manual release workflow
+   - They specify the version bump type (`major`, `minor`, or `patch`)
+   - This creates a release branch and PR with updated version
+
+1. **Release Creation**
+   - When the release PR is merged to main:
+     - A Git tag is created (e.g., `v1.2.3`)
+     - A GitHub release is created
+     - The package is published to PyPI
+
+The process requires the following GitHub secrets to be configured:
+- `PYPI_API_TOKEN`: For production PyPI publishing
+- `TEST_PYPI_API_TOKEN`: For TestPyPI publishing
+- `SNOWFLAKE_USER`: For running tests
+
+For full details on the release workflow, see [RELEASE_WORKFLOW.md](docs/RELEASE_WORKFLOW.md).
