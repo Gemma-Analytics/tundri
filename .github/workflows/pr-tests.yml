@@ -1,0 +1,52 @@
+name: PR Unit Tests
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    env:
+      PERMISSION_BOT_USER: ${{ secrets.SNOWFLAKE_USER }}
+      PERMISSION_BOT_KEY_PATH: "./.ssh/private_key.p8"
+      PERMISSION_BOT_ACCOUNT: ${{ secrets.SNOWFLAKE_ACCOUNT }}
+      PERMISSION_BOT_DATABASE: ${{ secrets.SNOWFLAKE_DATABASE }}
+      PERMISSION_BOT_ROLE: ${{ secrets.SNOWFLAKE_ROLE }}
+      PERMISSION_BOT_WAREHOUSE: ${{ secrets.SNOWFLAKE_WAREHOUSE }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v1
+        with:
+          version: "latest"
+
+      # snowflake-manager currently only supports connecting to Snowflake by providing
+      # the path to the user's private key, so we need to dump the key somewhere in
+      # the Ubuntu environment. While connecting via password is also possible, we are
+      # opting for key-pair to be future-proof
+      #
+      # TODO: extend snowflake-manager's get_snowflake_cursor() function to allow
+      # passing raw keys, so we can avoid exposing the private key
+      - name: Create folder for private key
+        run: mkdir -p ./.ssh
+
+      - name: Write private key to file
+        run: |
+          echo "${{ secrets.SNOWFLAKE_PRIVATE_KEY }}" > $PERMISSION_BOT_KEY_PATH
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Run tests
+        run: uv run pytest -vv

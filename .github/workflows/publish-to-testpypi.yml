@@ -1,0 +1,54 @@
+name: Publish to TestPyPI
+
+on:
+  pull_request:
+    branches:
+      - main
+    paths:
+      - 'pyproject.toml'
+      - 'tundri/**'
+
+jobs:
+  publish-to-testpypi:
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.merged == false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+
+      - name: Install build dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      - name: Build package
+        run: python -m build
+
+      - name: Check package
+        run: twine check dist/*
+
+      - name: Publish to TestPyPI
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
+        run: twine upload --repository testpypi dist/*
+
+      - name: Comment PR with TestPyPI link
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const version = require('fs').readFileSync('pyproject.toml', 'utf8')
+              .match(/version = "([^"]+)"/)[1];
+            const testpypiUrl = `https://test.pypi.org/project/tundri/${version}/`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `🚀 Package published to TestPyPI!\n\nYou can test the installation with:\n\`\`\`bash\npip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ tundri==${version}\n\`\`\`\n\nView package: ${testpypiUrl}`
+            });
