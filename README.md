@@ -12,7 +12,7 @@ Permifrost is great at managing permissions, but it doesn't create or alter obje
 With only Permifrost, one would have to manually create the objects and then run Permifrost to set the permissions. This is error prone and time consuming. That is where tundri comes in.
 
 ### In a nutshell
-tundri reads the [Permifrost spec file](https://gitlab.com/gitlab-data/permifrost#spec_file) and compares with the current state of the Snowflake account. It then creates, drops, and alters the objects to match. It leverages Permifrost's YAML `meta` tags to set attributes like `default_role` for users and `warehouse_size` for warehouses. Once the objects are created, tundri runs Permifrost to set the permissions.
+**tundri** reads the [Permifrost spec file](https://gitlab.com/gitlab-data/permifrost#spec_file) and compares with the current state of the Snowflake account. It then creates, drops, and alters the objects to match. It leverages Permifrost's YAML `meta` tags to set attributes like `default_role` for users and `warehouse_size` for warehouses. Once the objects are created, tundri runs Permifrost to set the permissions.
 
 ## Getting started
 
