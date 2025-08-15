@@ -35,7 +35,9 @@ def mock_connector(mocker):
                     "wh 2": {"grant_option": True},
                 }
             },
-            "manage grants": {"account": {"Account_Name": {"grant_option": False}}},
+            "manage grants": {
+                "account": {"Account_Name": {"grant_option": False}}
+            },
         },
     )
     return MockSnowflakeConnector()
@@ -53,22 +55,36 @@ class TestSnowflakeRoleGrantChecker:
             "my_role"
         )
 
-        assert SnowflakePermission("db 1", "database", ["use"], False) in permissions
         assert (
-            SnowflakePermission("wh 2", "warehouse", ["monitor"], False) in permissions
+            SnowflakePermission("db 1", "database", ["use"], False)
+            in permissions
         )
         assert (
-            SnowflakePermission("table 3", "table", ["ownership"], False) in permissions
+            SnowflakePermission("wh 2", "warehouse", ["monitor"], False)
+            in permissions
+        )
+        assert (
+            SnowflakePermission("table 3", "table", ["ownership"], False)
+            in permissions
         )
 
     @pytest.mark.parametrize(
         "permission,expected",
         [
-            (SnowflakePermission("table 4", "table", ["ownership"], False), False),
-            (SnowflakePermission("table 1", "table", ["ownership"], False), True),
+            (
+                SnowflakePermission("table 4", "table", ["ownership"], False),
+                False,
+            ),
+            (
+                SnowflakePermission("table 1", "table", ["ownership"], False),
+                True,
+            ),
             (SnowflakePermission("table 1", "table", ["select"], False), True),
             (SnowflakePermission("*", "account", ["ownership"], False), False),
-            (SnowflakePermission("*", "account", ["manage grants"], False), True),
+            (
+                SnowflakePermission("*", "account", ["manage grants"], False),
+                True,
+            ),
         ],
     )
     def test_has_permissions(self, grant_checker, permission, expected):
@@ -84,18 +100,30 @@ class TestSnowflakeRoleGrantChecker:
         "permission,expected",
         [
             (SnowflakePermission("table 4", "table", ["select"], True), False),
-            (SnowflakePermission("schema 1", "schema", ["ownership"], False), True),
+            (
+                SnowflakePermission("schema 1", "schema", ["ownership"], False),
+                True,
+            ),
             (SnowflakePermission("table 1", "table", ["select"], False), True),
             (SnowflakePermission("*", "account", ["ownership"], False), False),
-            (SnowflakePermission("wh 2", "warehouse", ["monitor"], False), True),
-            (SnowflakePermission("wh 1", "warehouse", ["monitor"], False), False),
+            (
+                SnowflakePermission("wh 2", "warehouse", ["monitor"], False),
+                True,
+            ),
+            (
+                SnowflakePermission("wh 1", "warehouse", ["monitor"], False),
+                False,
+            ),
         ],
     )
     def test_can_grant_permission(self, grant_checker, permission, expected):
         print("Permissions for role:")
         for p in grant_checker.get_permissions("my_role"):
             print(p)
-        assert grant_checker.can_grant_permission("my_role", permission) == expected
+        assert (
+            grant_checker.can_grant_permission("my_role", permission)
+            == expected
+        )
 
     def test_can_grant_permission_no_role(self, grant_checker):
         permission = SnowflakePermission("*", "account", ["ownership"], True)

@@ -8,7 +8,10 @@ from permifrost.logger import GLOBAL_LOGGER as logger
 
 @click.group(invoke_without_command=True, no_args_is_help=True)
 @click.option(
-    "-v", "--verbose", help="Increases log level with count, e.g -vv", count=True
+    "-v",
+    "--verbose",
+    help="Increases log level with count, e.g -vv",
+    count=True,
 )
 @click.version_option(version=permifrost.__version__, prog_name="permifrost")
 @click.pass_context

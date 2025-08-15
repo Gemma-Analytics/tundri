@@ -25,7 +25,9 @@ class SnowflakeConnector:
         if not config:
             config = {
                 "user": os.getenv("PERMISSION_BOT_USER"),
-                "password": quote_plus(os.getenv("PERMISSION_BOT_PASSWORD", "")),
+                "password": quote_plus(
+                    os.getenv("PERMISSION_BOT_PASSWORD", "")
+                ),
                 "account": os.getenv("PERMISSION_BOT_ACCOUNT"),
                 "database": os.getenv("PERMISSION_BOT_DATABASE"),
                 "role": os.getenv("PERMISSION_BOT_ROLE"),
@@ -166,9 +168,7 @@ class SnowflakeConnector:
         results = self.run_query(query).fetchall()
 
         for result in results:
-            table_identifier = (
-                f"{result['database_name']}.{result['schema_name']}.{result['name']}"
-            )
+            table_identifier = f"{result['database_name']}.{result['schema_name']}.{result['name']}"
             names.append(SnowflakeConnector.snowflaky(table_identifier))
 
         return names
@@ -188,9 +188,7 @@ class SnowflakeConnector:
         results = self.run_query(query).fetchall()
 
         for result in results:
-            view_identifier = (
-                f"{result['database_name']}.{result['schema_name']}.{result['name']}"
-            )
+            view_identifier = f"{result['database_name']}.{result['schema_name']}.{result['name']}"
             names.append(SnowflakeConnector.snowflaky(view_identifier))
 
         return names
@@ -215,9 +213,11 @@ class SnowflakeConnector:
                 privilege = result["privilege"].lower()
                 granted_on = result["grant_on"].lower()
 
-                future_grants.setdefault(role, {}).setdefault(privilege, {}).setdefault(
-                    granted_on, []
-                ).append(SnowflakeConnector.snowflaky(result["name"]))
+                future_grants.setdefault(role, {}).setdefault(
+                    privilege, {}
+                ).setdefault(granted_on, []).append(
+                    SnowflakeConnector.snowflaky(result["name"])
+                )
 
             else:
                 continue
@@ -255,9 +255,9 @@ class SnowflakeConnector:
             grant_option = result["grant_option"].lower() == "true"
             name = SnowflakeConnector.snowflaky(result["name"])
 
-            grants.setdefault(privilege, {}).setdefault(granted_on, {}).setdefault(
-                name, {}
-            ).update({"grant_option": grant_option})
+            grants.setdefault(privilege, {}).setdefault(
+                granted_on, {}
+            ).setdefault(name, {}).update({"grant_option": grant_option})
 
         return grants
 
@@ -395,7 +395,10 @@ class SnowflakeConnector:
                 new_name_parts.append(part)
 
             # If a future object, return in lower case - no need to quote
-            elif re.match("<(table|view|schema)>", part, re.IGNORECASE) is not None:
+            elif (
+                re.match("<(table|view|schema)>", part, re.IGNORECASE)
+                is not None
+            ):
                 new_name_parts.append(part.lower())
 
             # If does not meet requirements for unquoted object identifiers or collides with reserved keywords,

@@ -39,13 +39,26 @@ class TestSnowflakeConnector:
 
         assert SnowflakeConnector.snowflaky(db1) == 'analytics."schema"."table"'
         assert SnowflakeConnector.snowflaky(db2) == '"1234raw"."schema"."table"'
-        assert SnowflakeConnector.snowflaky(db3) == '"123-with-quotes"."schema"."table"'
-        assert SnowflakeConnector.snowflaky(db4) == '"1_db-9-RANDOM"."schema"."table"'
-        assert SnowflakeConnector.snowflaky(db5) == "database_1.schema_1.table_1"
-        assert SnowflakeConnector.snowflaky(db6) == "database_1.schema_1.table$a"
-        assert SnowflakeConnector.snowflaky(db7) == 'database_1.schema_1."GROUP"'
         assert (
-            SnowflakeConnector.snowflaky(db8) == 'database_1.schema_1."1_LEADING_DIGIT"'
+            SnowflakeConnector.snowflaky(db3)
+            == '"123-with-quotes"."schema"."table"'
+        )
+        assert (
+            SnowflakeConnector.snowflaky(db4)
+            == '"1_db-9-RANDOM"."schema"."table"'
+        )
+        assert (
+            SnowflakeConnector.snowflaky(db5) == "database_1.schema_1.table_1"
+        )
+        assert (
+            SnowflakeConnector.snowflaky(db6) == "database_1.schema_1.table$a"
+        )
+        assert (
+            SnowflakeConnector.snowflaky(db7) == 'database_1.schema_1."GROUP"'
+        )
+        assert (
+            SnowflakeConnector.snowflaky(db8)
+            == 'database_1.schema_1."1_LEADING_DIGIT"'
         )
         assert (
             SnowflakeConnector.snowflaky(db9)
@@ -64,21 +77,27 @@ class TestSnowflakeConnector:
             == 'database_1.schema_1."Case_Sensitive_Table_Name"'
         )
 
-        assert SnowflakeConnector.snowflaky(db13) == "database_1.schema_1.<table>"
-
         assert (
-            SnowflakeConnector.snowflaky(db14) == 'database_1."1_LEADING_DIGIT".<table>'
+            SnowflakeConnector.snowflaky(db13) == "database_1.schema_1.<table>"
         )
 
         assert (
-            SnowflakeConnector.snowflaky(db15) == 'database_1."1_LEADING_DIGIT".<table>'
+            SnowflakeConnector.snowflaky(db14)
+            == 'database_1."1_LEADING_DIGIT".<table>'
+        )
+
+        assert (
+            SnowflakeConnector.snowflaky(db15)
+            == 'database_1."1_LEADING_DIGIT".<table>'
         )
 
         with pytest.warns(SyntaxWarning):
             SnowflakeConnector.snowflaky(db16)
             SnowflakeConnector.snowflaky(db17)
 
-        assert SnowflakeConnector.snowflaky(db18) == 'database_1.schema_1."GROUP"'
+        assert (
+            SnowflakeConnector.snowflaky(db18) == 'database_1.schema_1."GROUP"'
+        )
 
         assert SnowflakeConnector.snowflaky(db19) == ""
 
@@ -96,7 +115,9 @@ class TestSnowflakeConnector:
 
         test_private_key = "TEST_PK"
         mocker.patch.object(
-            SnowflakeConnector, "generate_private_key", return_value=test_private_key
+            SnowflakeConnector,
+            "generate_private_key",
+            return_value=test_private_key,
         )
 
         os.environ["PERMISSION_BOT_KEY_PATH"] = "TEST"
@@ -112,7 +133,9 @@ class TestSnowflakeConnector:
             connect_args={"private_key": test_private_key},
         )
 
-    def test_uses_authenticator_if_available(self, mocker, snowflake_connector_env):
+    def test_uses_authenticator_if_available(
+        self, mocker, snowflake_connector_env
+    ):
         mocker.patch("sqlalchemy.create_engine")
         os.environ["PERMISSION_BOT_AUTHENTICATOR"] = "TEST"
         SnowflakeConnector()
@@ -121,7 +144,9 @@ class TestSnowflakeConnector:
             "snowflake://TEST:@TEST/TEST?authenticator=TEST&role=TEST&warehouse=TEST"
         )
 
-    def test_uses_username_password_by_default(self, mocker, snowflake_connector_env):
+    def test_uses_username_password_by_default(
+        self, mocker, snowflake_connector_env
+    ):
         mocker.patch("sqlalchemy.create_engine")
         SnowflakeConnector()
         sqlalchemy.create_engine.assert_called_with(
@@ -135,14 +160,18 @@ class TestSnowflakeConnector:
 
         conn.run_query(query)
 
-        conn.engine.assert_has_calls([mocker.call.connect().__enter__().execute(query)])
+        conn.engine.assert_has_calls(
+            [mocker.call.connect().__enter__().execute(query)]
+        )
 
     def test_run_query_returns_results(self, mocker):
         mocker.patch("sqlalchemy.create_engine")
         conn = SnowflakeConnector()
         expectedResult = "MY DATABASE RESULT"
         mocker.patch.object(
-            conn.engine.connect().__enter__(), "execute", return_value=expectedResult
+            conn.engine.connect().__enter__(),
+            "execute",
+            return_value=expectedResult,
         )
 
         result = conn.run_query("query")
@@ -159,7 +188,9 @@ class TestSnowflakeConnector:
 
         user = conn.get_current_user()
 
-        conn.run_query.assert_has_calls([mocker.call("SELECT CURRENT_USER() AS USER")])
+        conn.run_query.assert_has_calls(
+            [mocker.call("SELECT CURRENT_USER() AS USER")]
+        )
         assert user == "test_user"
 
     def test_get_current_role(self, mocker):
@@ -172,7 +203,9 @@ class TestSnowflakeConnector:
 
         role = conn.get_current_role()
 
-        conn.run_query.assert_has_calls([mocker.call("SELECT CURRENT_ROLE() AS ROLE")])
+        conn.run_query.assert_has_calls(
+            [mocker.call("SELECT CURRENT_ROLE() AS ROLE")]
+        )
         assert role == "test_role"
 
     def test_show_schemas(self, mocker):
@@ -299,7 +332,9 @@ class TestSnowflakeConnector:
             ],
         )
 
-        future_grants = conn.show_future_grants("database_1", "database_1.schema_1")
+        future_grants = conn.show_future_grants(
+            "database_1", "database_1.schema_1"
+        )
 
         conn.run_query.assert_has_calls(
             [mocker.call("SHOW FUTURE GRANTS IN SCHEMA database_1.schema_1")]
@@ -444,7 +479,9 @@ class TestSnowflakeConnector:
             '"lowercase role with spaces"',
         ]
 
-        conn.run_query.assert_has_calls([mocker.call("SHOW GRANTS TO USER test_user")])
+        conn.run_query.assert_has_calls(
+            [mocker.call("SHOW GRANTS TO USER test_user")]
+        )
         assert roles_granted_to_user == expected_roles_granted_to_user
 
     def test_show_grants_to_role(self, mocker):
@@ -470,10 +507,15 @@ class TestSnowflakeConnector:
 
         grants = conn.show_grants_to_role("test_role")
 
-        conn.run_query.assert_has_calls([mocker.call("SHOW GRANTS TO ROLE test_role")])
+        conn.run_query.assert_has_calls(
+            [mocker.call("SHOW GRANTS TO ROLE test_role")]
+        )
         assert grants == {
             "select": {
-                "table": ["database_1.schema_1.table_1", "database_1.schema_1.table_2"]
+                "table": [
+                    "database_1.schema_1.table_1",
+                    "database_1.schema_1.table_2",
+                ]
             }
         }
 
@@ -510,7 +552,9 @@ class TestSnowflakeConnector:
 
         grants = conn.show_grants_to_role("test_role")
 
-        conn.run_query.assert_has_calls([mocker.call("SHOW GRANTS TO ROLE test_role")])
+        conn.run_query.assert_has_calls(
+            [mocker.call("SHOW GRANTS TO ROLE test_role")]
+        )
         assert grants == {
             "select": {
                 "table": [

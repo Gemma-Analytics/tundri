@@ -51,7 +51,9 @@ class EntityGenerator:
              or a user given access to a database not defined in databases
         """
         self.generate()
-        self.error_messages.extend(self.ensure_valid_entity_names(self.entities))
+        self.error_messages.extend(
+            self.ensure_valid_entity_names(self.entities)
+        )
 
         self.error_messages.extend(
             self.ensure_valid_spec_for_conditional_settings(self.entities)
@@ -65,7 +67,9 @@ class EntityGenerator:
         return self.entities
 
     @staticmethod
-    def filter_grouped_entities_by_type(grouped_entities: List, type: str) -> List:
+    def filter_grouped_entities_by_type(
+        grouped_entities: List, type: str
+    ) -> List:
         """
         Takes a list of grouped entities and filters them for a particular entity_type
 
@@ -75,7 +79,9 @@ class EntityGenerator:
 
         """
         filtered_entities = [
-            entries for entity_type, entries in grouped_entities if entity_type == type
+            entries
+            for entity_type, entries in grouped_entities
+            if entity_type == type
         ]
 
         # Avoid returning a nested list if there are entities
@@ -147,7 +153,9 @@ class EntityGenerator:
             self.filter_grouped_entities_by_type(entities_by_type, "warehouses")
         )
         self.generate_integrations(
-            self.filter_grouped_entities_by_type(entities_by_type, "integrations")
+            self.filter_grouped_entities_by_type(
+                entities_by_type, "integrations"
+            )
         )
         self.generate_users(
             self.filter_grouped_entities_by_type(entities_by_type, "users")
@@ -184,7 +192,9 @@ class EntityGenerator:
                 self.entities["database_refs"].add(name_parts[0])
 
             if name_parts[1] != "*":
-                self.entities["schema_refs"].add(f"{name_parts[0]}.{name_parts[1]}")
+                self.entities["schema_refs"].add(
+                    f"{name_parts[0]}.{name_parts[1]}"
+                )
 
     def ensure_valid_entity_names(self, entities: EntitySchema) -> List[str]:
         """
@@ -299,12 +309,16 @@ class EntityGenerator:
 
         return error_messages
 
-    def generate_warehouses(self, warehouse_list: List[Dict[str, Dict]]) -> None:
+    def generate_warehouses(
+        self, warehouse_list: List[Dict[str, Dict]]
+    ) -> None:
         for warehouse_entry in warehouse_list:
             for warehouse_name, _ in warehouse_entry.items():
                 self.entities["warehouses"].add(warehouse_name)
 
-    def generate_integrations(self, integration_list: List[Dict[str, Dict]]) -> None:
+    def generate_integrations(
+        self, integration_list: List[Dict[str, Dict]]
+    ) -> None:
         for integration_entry in integration_list:
             for integration_name, _ in integration_entry.items():
                 self.entities["integrations"].add(integration_name)
@@ -395,9 +409,10 @@ class EntityGenerator:
         return (read_databases, write_databases)
 
     def generate_schema_roles(self, config, role_name):
-        read_databases, write_databases = self.generate_read_write_database_names(
-            config
-        )
+        (
+            read_databases,
+            write_databases,
+        ) = self.generate_read_write_database_names(config)
 
         try:
             for schema in config["privileges"]["schemas"]["read"]:
@@ -434,9 +449,10 @@ class EntityGenerator:
             )
 
     def generate_table_roles(self, config, role_name):
-        read_databases, write_databases = self.generate_read_write_database_names(
-            config
-        )
+        (
+            read_databases,
+            write_databases,
+        ) = self.generate_read_write_database_names(config)
 
         try:
             for table in config["privileges"]["tables"]["read"]:
@@ -541,9 +557,14 @@ class EntityGenerator:
         for user_entry in user_list:
             for user_name, config in user_entry.items():
                 self.entities["users"].add(user_name)
-                self.generate_user_fn(config, "member_of", "role_refs", user_name)
                 self.generate_user_fn(
-                    config.get("owns", {}), "database", "database_refs", user_name
+                    config, "member_of", "role_refs", user_name
+                )
+                self.generate_user_fn(
+                    config.get("owns", {}),
+                    "database",
+                    "database_refs",
+                    user_name,
                 )
                 self.generate_user_fn(
                     config.get("owns", {}), "schemas", "schema_refs", user_name

@@ -2,7 +2,9 @@ import pytest
 import os
 
 from permifrost.snowflake_spec_loader import SnowflakeSpecLoader
-from permifrost_test_utils.snowflake_schema_builder import SnowflakeSchemaBuilder
+from permifrost_test_utils.snowflake_schema_builder import (
+    SnowflakeSchemaBuilder,
+)
 from permifrost_test_utils.snowflake_connector import MockSnowflakeConnector
 
 THIS_DIR = os.path.dirname(os.path.abspath(__file__))
@@ -99,12 +101,18 @@ def test_roles_mock_connector(mocker):
 
 
 class TestSnowflakeUserProperties:
-    def test_user_base(self, mocker, test_roles_mock_connector, test_roles_spec_file):
+    def test_user_base(
+        self, mocker, test_roles_mock_connector, test_roles_spec_file
+    ):
         """Make sure that the user without any property only have the DISABLED property altered"""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         queries = spec_loader.generate_permission_queries(
             users=["base_user_test"], run_list=["users"]
         )
@@ -121,8 +129,12 @@ class TestSnowflakeUserProperties:
         """Make sure that the user password get set to null if the has_password property is False"""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         queries = spec_loader.generate_permission_queries(
             users=["test_user_with_password_disabled"], run_list=["users"]
         )
@@ -139,8 +151,12 @@ class TestSnowflakeUserProperties:
         """Make sure that the user display_name get set if the display_name property is set"""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         queries = spec_loader.generate_permission_queries(
             users=["test_user_with_display_name"], run_list=["users"]
         )
@@ -158,8 +174,12 @@ class TestSnowflakeUserProperties:
         """Make sure that the user COMMENT get set if the comment property is set"""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         queries = spec_loader.generate_permission_queries(
             users=["test_user_with_comment"], run_list=["users"]
         )
@@ -177,10 +197,15 @@ class TestSnowflakeUserProperties:
         """Make sure if multiple properties is set (PASSWORD, COMMENT) then all if them are set."""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         queries = spec_loader.generate_permission_queries(
-            users=["test_user_with_comment_password_disabled"], run_list=["users"]
+            users=["test_user_with_comment_password_disabled"],
+            run_list=["users"],
         )
 
         assert queries == [
@@ -196,8 +221,12 @@ class TestSnowflakeUserProperties:
         """Make sure if multiple properties is set (FIRST_NAME, MIDDLE_NAME, LAST_NAME) then all if them are set."""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         queries = spec_loader.generate_permission_queries(
             users=["test_user_with_full_name"], run_list=["users"]
         )
@@ -216,8 +245,12 @@ class TestSnowflakeUserProperties:
         """Make sure if the EMAIL property is set then the EMAIL is set."""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         queries = spec_loader.generate_permission_queries(
             users=["test_user_with_email"], run_list=["users"]
         )
@@ -235,10 +268,15 @@ class TestSnowflakeUserProperties:
         """Make sure if multiple properties is set (DISPLAY_NAME, COMMENT) then all if them are set."""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         queries = spec_loader.generate_permission_queries(
-            users=["test_user_with_password_display_name_comment"], run_list=["users"]
+            users=["test_user_with_password_display_name_comment"],
+            run_list=["users"],
         )
 
         assert queries == [
@@ -257,8 +295,12 @@ class TestSnowflakeUserProperties:
         EMAIL COMMENT) then all if them are set."""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         queries = spec_loader.generate_permission_queries(
             users=["test_user_with_multiple_properties"], run_list=["users"]
         )
@@ -284,8 +326,12 @@ class TestSnowflakeUserProperties:
         then all if them are set."""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         queries = spec_loader.generate_permission_queries(
             users=["test_user_defaults"], run_list=["users"]
         )

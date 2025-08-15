@@ -5,7 +5,9 @@ from permifrost import SpecLoadingError
 from permifrost.snowflake_spec_loader import SnowflakeSpecLoader
 from permifrost.snowflake_connector import SnowflakeConnector
 from permifrost.snowflake_grants import SnowflakeGrantsGenerator
-from permifrost_test_utils.snowflake_schema_builder import SnowflakeSchemaBuilder
+from permifrost_test_utils.snowflake_schema_builder import (
+    SnowflakeSchemaBuilder,
+)
 from permifrost_test_utils.snowflake_connector import MockSnowflakeConnector
 
 
@@ -59,7 +61,9 @@ def test_grants_roles_mock_connection(mocker, mock_method, return_value):
     mocker.patch.object(
         mock_connector, "get_current_role", return_value="securityadmin"
     )
-    mocker.patch.object(mock_connector, "get_current_user", return_value="testuser")
+    mocker.patch.object(
+        mock_connector, "get_current_user", return_value="testuser"
+    )
     mocker.patch.object(
         mock_connector,
         "show_warehouses",
@@ -71,7 +75,9 @@ def test_grants_roles_mock_connection(mocker, mock_method, return_value):
         return_value=["primaryintegration", "secondaryintegration"],
     )
     mocker.patch.object(
-        mock_connector, "show_databases", return_value=["primarydb", "secondarydb"]
+        mock_connector,
+        "show_databases",
+        return_value=["primarydb", "secondarydb"],
     )
     mocker.patch.object(
         mock_connector, "show_roles", return_value=["testrole", "securityadmin"]
@@ -93,7 +99,9 @@ def test_roles_mock_connector(mocker):
     mocker.patch.object(
         mock_connector, "get_current_role", return_value="securityadmin"
     )
-    mocker.patch.object(mock_connector, "get_current_user", return_value="testuser")
+    mocker.patch.object(
+        mock_connector, "get_current_user", return_value="testuser"
+    )
     mocker.patch.object(
         mock_connector,
         "show_warehouses",
@@ -105,7 +113,9 @@ def test_roles_mock_connector(mocker):
         return_value=["primaryintegration", "secondaryintegration"],
     )
     mocker.patch.object(
-        mock_connector, "show_databases", return_value=["primarydb", "secondarydb"]
+        mock_connector,
+        "show_databases",
+        return_value=["primarydb", "secondarydb"],
     )
     mocker.patch.object(
         mock_connector,
@@ -211,7 +221,9 @@ class TestSnowflakeSpecLoader:
         spec_file_data, method, return_value = config()
         print("Spec file is: ")
         print(spec_file_data)
-        mocker.patch("builtins.open", mocker.mock_open(read_data=spec_file_data))
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=spec_file_data)
+        )
         mocker.patch.object(mock_connector, method, return_value=return_value)
         SnowflakeSpecLoader("", mock_connector)
 
@@ -227,9 +239,7 @@ class TestSnowflakeSpecLoader:
         )
         method = "show_roles"
         return_value = ["role_1"]
-        expected_error = (
-            'Spec error: roles "role_1", field "member_of": no definitions validate'
-        )
+        expected_error = 'Spec error: roles "role_1", field "member_of": no definitions validate'
 
         return [spec_file_data, method, return_value, expected_error]
 
@@ -251,7 +261,9 @@ class TestSnowflakeSpecLoader:
         """
         print("Spec file is: ")
         print(spec_file_data)
-        mocker.patch("builtins.open", mocker.mock_open(read_data=spec_file_data))
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=spec_file_data)
+        )
         mocker.patch.object(mock_connector, method, return_value=return_value)
         with pytest.raises(SpecLoadingError) as context:
             SnowflakeSpecLoader("", mock_connector)
@@ -287,9 +299,7 @@ class TestSnowflakeSpecLoader:
         )
         method = "show_roles"
         return_value = {"some-other-role": "none"}
-        expected_error = (
-            "Missing Entity Error: Role testrole was not found on Snowflake Server"
-        )
+        expected_error = "Missing Entity Error: Role testrole was not found on Snowflake Server"
 
         return [spec_file_data, method, return_value, expected_error]
 
@@ -303,9 +313,7 @@ class TestSnowflakeSpecLoader:
         )
         method = "show_roles"
         return_value = {}
-        expected_error = (
-            "Missing Entity Error: Role testrole was not found on Snowflake Server"
-        )
+        expected_error = "Missing Entity Error: Role testrole was not found on Snowflake Server"
 
         return [spec_file_data, method, return_value, expected_error]
 
@@ -321,9 +329,7 @@ class TestSnowflakeSpecLoader:
         )
         method = "show_roles"
         return_value = {}
-        expected_error = (
-            "Missing Entity Error: Role testrole was not found on Snowflake Server"
-        )
+        expected_error = "Missing Entity Error: Role testrole was not found on Snowflake Server"
 
         return [spec_file_data, method, return_value, expected_error]
 
@@ -348,7 +354,9 @@ class TestSnowflakeSpecLoader:
         """
         print("Spec file is: ")
         print(spec_file_data)
-        mocker.patch("builtins.open", mocker.mock_open(read_data=spec_file_data))
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=spec_file_data)
+        )
         mocker.patch.object(mock_connector, method, return_value=return_value)
         with pytest.raises(SpecLoadingError) as context:
             SnowflakeSpecLoader("", mock_connector)
@@ -411,7 +419,9 @@ class TestSnowflakeSpecLoader:
         self, test_grants_roles_mock_connection, mocker, mock_method, config
     ):
         spec_file_data, expected_value = config
-        mocker.patch("builtins.open", mocker.mock_open(read_data=spec_file_data))
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=spec_file_data)
+        )
         spec_loader = SnowflakeSpecLoader(
             spec_path="", conn=test_grants_roles_mock_connection
         )
@@ -580,7 +590,9 @@ class TestSnowflakeSpecLoader:
             "warehouse_refs": warehouse_refs,
             "integration_refs": integration_refs,
         }
-        spec_loader.filter_to_database_refs(grant_on=grant_on, filter_set=filter_set)
+        spec_loader.filter_to_database_refs(
+            grant_on=grant_on, filter_set=filter_set
+        )
 
     # edge case for PascalCase table entities
     def load_spec_file_case_one():
@@ -599,7 +611,9 @@ class TestSnowflakeSpecLoader:
         )
         method = "show_tables"
         return_value = ["database_1.schema_1.tableone"]
-        expected_error = "Missing Entity Error: Table/View database_1.schema_1.TableOne"
+        expected_error = (
+            "Missing Entity Error: Table/View database_1.schema_1.TableOne"
+        )
         return [spec_file_data, method, return_value, expected_error]
 
     # edge case for table entities that do not exist
@@ -619,7 +633,9 @@ class TestSnowflakeSpecLoader:
         )
         method = "show_tables"
         return_value = []
-        expected_error = "Missing Entity Error: Table/View database_1.schema_1.tableone"
+        expected_error = (
+            "Missing Entity Error: Table/View database_1.schema_1.tableone"
+        )
         return [spec_file_data, method, return_value, expected_error]
 
     # non edge case for table entities that do exist
@@ -644,7 +660,11 @@ class TestSnowflakeSpecLoader:
 
     @pytest.mark.parametrize(
         "config",
-        [load_spec_file_case_one, load_spec_file_case_two, load_spec_file_case_three],
+        [
+            load_spec_file_case_one,
+            load_spec_file_case_two,
+            load_spec_file_case_three,
+        ],
     )
     def test_load_spec_with_edge_case_tables(
         self,
@@ -655,7 +675,9 @@ class TestSnowflakeSpecLoader:
         spec_file_data, method, return_value, expected_error = config()
         print("Spec file is: ")
         print(spec_file_data)
-        mocker.patch("builtins.open", mocker.mock_open(read_data=spec_file_data))
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=spec_file_data)
+        )
         mocker.patch.object(mock_connector, method, return_value=return_value)
         with pytest.raises(SpecLoadingError) as context:
             SnowflakeSpecLoader("", mock_connector)
@@ -665,7 +687,9 @@ class TestSnowflakeSpecLoader:
     def test_remove_duplicate_queries(self):
         sql_command_1 = {"sql": "GRANT OWNERSHIP ON SCHEMA PIZZA TO ROLE LIZZY"}
         sql_command_2 = sql_command_1.copy()
-        sql_command_3 = {"sql": "REVOKE ALL PRIVILEGES ON SCHEMA PIZZA FROM ROLE LIZZY"}
+        sql_command_3 = {
+            "sql": "REVOKE ALL PRIVILEGES ON SCHEMA PIZZA FROM ROLE LIZZY"
+        }
         sql_command_4 = sql_command_3.copy()
 
         result = SnowflakeSpecLoader.remove_duplicate_queries(
@@ -725,7 +749,9 @@ class TestSnowflakeSpecLoaderWithOwner:
         """
         SnowflakeSpecLoader loads without error for warehouse with owner
         """
-        spec_file_data = SnowflakeSchemaBuilder().add_warehouse(owner="user").build()
+        spec_file_data = (
+            SnowflakeSchemaBuilder().add_warehouse(owner="user").build()
+        )
         method = "show_warehouses"
         return_value = ["testwarehouse"]
 
@@ -737,7 +763,10 @@ class TestSnowflakeSpecLoaderWithOwner:
         and require-owner: True
         """
         spec_file_data = (
-            SnowflakeSchemaBuilder().require_owner().add_db(owner="user").build()
+            SnowflakeSchemaBuilder()
+            .require_owner()
+            .add_db(owner="user")
+            .build()
         )
         method = "show_databases"
         return_value = ["testdb"]
@@ -766,7 +795,10 @@ class TestSnowflakeSpecLoaderWithOwner:
         and require-owner: True
         """
         spec_file_data = (
-            SnowflakeSchemaBuilder().require_owner().add_user(owner="user").build()
+            SnowflakeSchemaBuilder()
+            .require_owner()
+            .add_user(owner="user")
+            .build()
         )
         method = "show_users"
         return_value = ["testusername"]
@@ -779,7 +811,10 @@ class TestSnowflakeSpecLoaderWithOwner:
         and require-owner: True
         """
         spec_file_data = (
-            SnowflakeSchemaBuilder().require_owner().add_warehouse(owner="user").build()
+            SnowflakeSchemaBuilder()
+            .require_owner()
+            .add_warehouse(owner="user")
+            .build()
         )
         method = "show_warehouses"
         return_value = ["testwarehouse"]
@@ -792,7 +827,9 @@ class TestSnowflakeSpecLoaderWithOwner:
         """
         print("spec_file_data")
 
-        spec_file_data = SnowflakeSchemaBuilder().add_integration(owner="user").build()
+        spec_file_data = (
+            SnowflakeSchemaBuilder().add_integration(owner="user").build()
+        )
         print(spec_file_data)
         method = "show_integrations"
         return_value = ["testintegration"]
@@ -839,7 +876,9 @@ class TestSnowflakeSpecLoaderWithOwner:
         spec_file_data, method, return_value = config()
         print("Spec file is: ")
         print(spec_file_data)
-        mocker.patch("builtins.open", mocker.mock_open(read_data=spec_file_data))
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=spec_file_data)
+        )
         mocker.patch.object(mock_connector, method, return_value=return_value)
         SnowflakeSpecLoader("", mock_connector)
 
@@ -849,7 +888,9 @@ class TestSnowflakeSpecLoaderWithOwner:
         Raise 'Owner not defined' error on show_databases
         with no owner and require-owner = True
         """
-        spec_file_data = SnowflakeSchemaBuilder().require_owner().add_db().build()
+        spec_file_data = (
+            SnowflakeSchemaBuilder().require_owner().add_db().build()
+        )
         method = "show_databases"
         return_value = ["testdb"]
         return [spec_file_data, method, return_value]
@@ -876,7 +917,9 @@ class TestSnowflakeSpecLoaderWithOwner:
         Raise 'Owner not defined' error on show_users
         with no owner and require-owner = True
         """
-        spec_file_data = SnowflakeSchemaBuilder().require_owner().add_user().build()
+        spec_file_data = (
+            SnowflakeSchemaBuilder().require_owner().add_user().build()
+        )
         method = "show_users"
         return_value = ["testusername"]
         return [spec_file_data, method, return_value]
@@ -926,7 +969,9 @@ class TestSnowflakeSpecLoaderWithOwner:
         spec_file_data, method, return_value = config()
         print("Spec file is: ")
         print(spec_file_data)
-        mocker.patch("builtins.open", mocker.mock_open(read_data=spec_file_data))
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=spec_file_data)
+        )
         mocker.patch.object(mock_connector, method, return_value=return_value)
         with pytest.raises(SpecLoadingError) as context:
             SnowflakeSpecLoader("", mock_connector)
@@ -944,7 +989,9 @@ class TestSnowflakeSpecLoaderWithOwner:
         )
         print("Spec file is: ")
         print(spec_file_data)
-        mocker.patch("builtins.open", mocker.mock_open(read_data=spec_file_data))
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=spec_file_data)
+        )
         spec_loader = SnowflakeSpecLoader("", mock_connector)
         queries = spec_loader.generate_permission_queries()
 
@@ -952,17 +999,26 @@ class TestSnowflakeSpecLoaderWithOwner:
 
 
 class TestSnowflakeSpecLoaderUserRoleFilters:
-    def test_role_filter(self, mocker, test_roles_mock_connector, test_roles_spec_file):
+    def test_role_filter(
+        self, mocker, test_roles_mock_connector, test_roles_spec_file
+    ):
         """GRANT queries list filtered by role."""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         results = spec_loader.generate_permission_queries(
             roles=["primary"], run_list=["roles"]
         )
         expected = [
-            {"already_granted": False, "sql": "GRANT ROLE testrole TO role primary"}
+            {
+                "already_granted": False,
+                "sql": "GRANT ROLE testrole TO role primary",
+            }
         ]
         assert results == expected
 
@@ -972,14 +1028,24 @@ class TestSnowflakeSpecLoaderUserRoleFilters:
         """Make sure that the GRANT queries list can be filtered by multiple roles."""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         results = spec_loader.generate_permission_queries(
             roles=["primary", "secondary"], run_list=["roles"]
         )
         expected_results = [
-            {"already_granted": False, "sql": "GRANT ROLE testrole TO role primary"},
-            {"already_granted": False, "sql": "GRANT ROLE testrole TO role secondary"},
+            {
+                "already_granted": False,
+                "sql": "GRANT ROLE testrole TO role primary",
+            },
+            {
+                "already_granted": False,
+                "sql": "GRANT ROLE testrole TO role secondary",
+            },
         ]
         assert results == expected_results
 
@@ -992,16 +1058,26 @@ class TestSnowflakeSpecLoaderUserRoleFilters:
         """
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         results = spec_loader.generate_permission_queries(
             roles=["primary", "secondary"],
             users=["testusername"],
             run_list=["roles", "users"],
         )
         expected_results = [
-            {"already_granted": False, "sql": "GRANT ROLE testrole TO role primary"},
-            {"already_granted": False, "sql": "GRANT ROLE testrole TO role secondary"},
+            {
+                "already_granted": False,
+                "sql": "GRANT ROLE testrole TO role primary",
+            },
+            {
+                "already_granted": False,
+                "sql": "GRANT ROLE testrole TO role secondary",
+            },
             {
                 "already_granted": False,
                 "sql": "ALTER USER testusername SET DISABLED = FALSE",
@@ -1015,17 +1091,30 @@ class TestSnowflakeSpecLoaderUserRoleFilters:
         """Test that the generate_permissions_query does no filtering on when users and roles are not defined."""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
 
         expected_sql_queries = [
-            {"already_granted": False, "sql": "GRANT ROLE testrole TO role testrole"},
+            {
+                "already_granted": False,
+                "sql": "GRANT ROLE testrole TO role testrole",
+            },
             {
                 "already_granted": False,
                 "sql": "GRANT ROLE testrole TO role securityadmin",
             },
-            {"already_granted": False, "sql": "GRANT ROLE testrole TO role primary"},
-            {"already_granted": False, "sql": "GRANT ROLE testrole TO role secondary"},
+            {
+                "already_granted": False,
+                "sql": "GRANT ROLE testrole TO role primary",
+            },
+            {
+                "already_granted": False,
+                "sql": "GRANT ROLE testrole TO role secondary",
+            },
             {
                 "already_granted": False,
                 "sql": "ALTER USER testusername SET DISABLED = FALSE",
@@ -1038,12 +1127,18 @@ class TestSnowflakeSpecLoaderUserRoleFilters:
 
         assert spec_loader.generate_permission_queries() == expected_sql_queries
 
-    def test_user_filter(self, mocker, test_roles_mock_connector, test_roles_spec_file):
+    def test_user_filter(
+        self, mocker, test_roles_mock_connector, test_roles_spec_file
+    ):
         """Make sure that the grant queries list can be filtered by user."""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         assert spec_loader.generate_permission_queries(
             users=["testusername"], run_list=["users"]
         ) == [
@@ -1059,8 +1154,12 @@ class TestSnowflakeSpecLoaderUserRoleFilters:
         """Make sure that the grant queries list can be filtered by multiple users."""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         results = spec_loader.generate_permission_queries(
             users=["testusername", "testuser"], run_list=["users"]
         )
@@ -1082,15 +1181,22 @@ class TestSnowflakeSpecLoaderUserRoleFilters:
         """Make sure that the grant queries list can be filtered by multiple users and a single role ignores the role"""
 
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
-        spec_loader = SnowflakeSpecLoader(spec_path="", conn=test_roles_mock_connector)
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
+        spec_loader = SnowflakeSpecLoader(
+            spec_path="", conn=test_roles_mock_connector
+        )
         results = spec_loader.generate_permission_queries(
             users=["testusername", "testuser"],
             roles=["primary"],
             run_list=["roles", "users"],
         )
         expected_results = [
-            {"already_granted": False, "sql": "GRANT ROLE testrole TO role primary"},
+            {
+                "already_granted": False,
+                "sql": "GRANT ROLE testrole TO role primary",
+            },
             {
                 "already_granted": False,
                 "sql": "ALTER USER testusername SET DISABLED = FALSE",
@@ -1275,7 +1381,9 @@ class TestGetPrivilegesFromSnowflakeServer:
         """Verify correct calls when getting privs from server:"""
         users, roles, run_list, expected_calls = config()
         print(f"Spec File Data is:\n{test_roles_spec_file}")
-        mocker.patch("builtins.open", mocker.mock_open(read_data=test_roles_spec_file))
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=test_roles_spec_file)
+        )
         mock_get_role_privileges_from_snowflake_server = mocker.patch.object(
             SnowflakeSpecLoader,
             "get_role_privileges_from_snowflake_server",
@@ -1320,7 +1428,8 @@ class TestSpecFileLoading:
     ):
         mocker.patch.object(mock_connector, "show_warehouses")
         SnowflakeSpecLoader(
-            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"), mock_connector
+            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"),
+            mock_connector,
         )
         mock_connector.show_warehouses.assert_not_called()
 
@@ -1329,7 +1438,8 @@ class TestSpecFileLoading:
     ):
         mocker.patch.object(mock_connector, "show_integrations")
         SnowflakeSpecLoader(
-            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"), mock_connector
+            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"),
+            mock_connector,
         )
         mock_connector.show_integrations.assert_not_called()
 
@@ -1338,7 +1448,8 @@ class TestSpecFileLoading:
     ):
         mocker.patch.object(mock_connector, "show_databases")
         SnowflakeSpecLoader(
-            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"), mock_connector
+            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"),
+            mock_connector,
         )
         mock_connector.show_databases.assert_not_called()
 
@@ -1347,7 +1458,8 @@ class TestSpecFileLoading:
     ):
         mocker.patch.object(mock_connector, "show_schemas")
         SnowflakeSpecLoader(
-            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"), mock_connector
+            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"),
+            mock_connector,
         )
         mock_connector.show_schemas.assert_not_called()
 
@@ -1357,7 +1469,8 @@ class TestSpecFileLoading:
         mocker.patch.object(mock_connector, "show_tables")
         mocker.patch.object(mock_connector, "show_views")
         SnowflakeSpecLoader(
-            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"), mock_connector
+            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"),
+            mock_connector,
         )
         mock_connector.show_tables.assert_not_called()
         mock_connector.show_views.assert_not_called()
@@ -1367,7 +1480,8 @@ class TestSpecFileLoading:
     ):
         mocker.patch.object(mock_connector, "show_roles")
         SnowflakeSpecLoader(
-            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"), mock_connector
+            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"),
+            mock_connector,
         )
         mock_connector.show_roles.assert_not_called()
 
@@ -1376,7 +1490,8 @@ class TestSpecFileLoading:
     ):
         mocker.patch.object(mock_connector, "show_users")
         SnowflakeSpecLoader(
-            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"), mock_connector
+            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"),
+            mock_connector,
         )
         mock_connector.show_users.assert_not_called()
 
@@ -1384,10 +1499,13 @@ class TestSpecFileLoading:
         self, test_dir, mocker, mock_connector
     ):
         mocker.patch.object(
-            MockSnowflakeConnector, "get_current_role", return_value="securityadmin"
+            MockSnowflakeConnector,
+            "get_current_role",
+            return_value="securityadmin",
         )
         SnowflakeSpecLoader(
-            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"), mock_connector
+            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"),
+            mock_connector,
         )
         mock_connector.get_current_role.assert_called()
 
@@ -1398,7 +1516,9 @@ class TestSpecFileLoading:
         Validates that an error is raised if not using SECURITYADMIN
         """
         mocker.patch.object(
-            MockSnowflakeConnector, "get_current_role", return_value="notsecurityadmin"
+            MockSnowflakeConnector,
+            "get_current_role",
+            return_value="notsecurityadmin",
         )
         with pytest.raises(SpecLoadingError):
             SnowflakeSpecLoader(
@@ -1412,7 +1532,8 @@ class TestSpecFileLoading:
     ):
         mocker.patch.object(mock_connector, "get_current_user")
         SnowflakeSpecLoader(
-            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"), mock_connector
+            os.path.join(test_dir, "specs", "snowflake_spec_blank.yml"),
+            mock_connector,
         )
         mock_connector.get_current_user.assert_called()
 
@@ -1420,7 +1541,9 @@ class TestSpecFileLoading:
         self, test_dir, mocker, mock_connector
     ):
         mocker.patch.object(
-            SnowflakeSpecLoader, "check_entities_on_snowflake_server", return_value=None
+            SnowflakeSpecLoader,
+            "check_entities_on_snowflake_server",
+            return_value=None,
         )
         mocker.patch(
             "permifrost.snowflake_connector.SnowflakeConnector",
@@ -1479,7 +1602,9 @@ class TestSpecFileLoading:
             return_value=["role_1", "role_2", "role_3"],
         )
 
-        spec_file_data = SnowflakeSchemaBuilder().add_role(member_of=['"*"']).build()
+        spec_file_data = (
+            SnowflakeSchemaBuilder().add_role(member_of=['"*"']).build()
+        )
         expected = [
             "GRANT ROLE role_1 TO role testrole",
             "GRANT ROLE role_2 TO role testrole",
@@ -1635,7 +1760,9 @@ class TestSpecFileLoading:
     ):
         spec_file_data, expected = config(mocker)
         mocker.patch.object(
-            SnowflakeSpecLoader, "check_entities_on_snowflake_server", return_value=None
+            SnowflakeSpecLoader,
+            "check_entities_on_snowflake_server",
+            return_value=None,
         )
         mocker.patch(
             "permifrost.snowflake_connector.SnowflakeConnector",
@@ -1658,7 +1785,9 @@ class TestSpecFileLoading:
 
         print("Spec file is: ")
         print(spec_file_data)
-        mocker.patch("builtins.open", mocker.mock_open(read_data=spec_file_data))
+        mocker.patch(
+            "builtins.open", mocker.mock_open(read_data=spec_file_data)
+        )
         mocker.patch.object(mock_connector, method, return_value=return_value)
         spec_loader = SnowflakeSpecLoader("", mock_connector)
         sql_queries = spec_loader.generate_permission_queries()
