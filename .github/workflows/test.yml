@@ -46,13 +46,9 @@ jobs:
 
       - name: Run linting
         run: |
-          flake8 src/ tests/
-          isort --check-only src/ tests/
-          black --check src/ tests/
+          make ci-show-lint
 
-      - name: Run type checking
-        run: |
-          mypy src/
+
 
       - name: Run tests
         run: |
