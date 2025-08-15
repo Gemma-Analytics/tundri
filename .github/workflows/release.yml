@@ -159,9 +159,9 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: v${{ steps.get_version.outputs.version }}
-          release_name: Release v${{ steps.get_version.outputs.version }}
+          release_name: v${{ steps.get_version.outputs.version }}
           body: |
-            ## Release v${{ steps.get_version.outputs.version }}
+            ## v${{ steps.get_version.outputs.version }}
             
             This release has been automatically published to PyPI.
             
