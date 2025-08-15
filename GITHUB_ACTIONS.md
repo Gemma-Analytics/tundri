@@ -19,7 +19,7 @@ We have three GitHub Actions workflows that handle different aspects of the rele
 - Pushes to `main`/`master` that modify the same files
 
 **What it does:**
-- Runs tests on multiple Python versions (3.8, 3.9, 3.10, 3.11)
+- Runs tests on Python 3.10
 - Performs linting checks (flake8, isort, black)
 - Runs type checking with mypy
 - Executes pytest with coverage
