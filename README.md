@@ -36,7 +36,7 @@ Add a valid [Permifrost spec file](https://gitlab.com/gitlab-data/permifrost#spe
 Set up your Snowflake connection details in the environment variables listed below.
 
 > [!TIP]
-> You can use a `.env` file to store your credentials.
+> You can use a `.env` file to store your credentials. Place it in the same folder as the Permifrost spec file.
 
 ```bash
 PERMISSION_BOT_ACCOUNT=abc134.west-europe.azure  # Your account identifier
@@ -83,4 +83,10 @@ uv run pytest -v
 Run the command below to format the code
 ```bash
 uv run black .
+```
+
+### Testing locally
+Dry run with the example spec file
+```bash
+uv run tundri run --dry -p examples/permifrost.yml
 ```
