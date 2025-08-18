@@ -18,7 +18,7 @@ With only Permifrost, one would have to manually create the objects and then run
 
 ### Prerequisites
 
-- Credentials to a Snowflake account with the `securityadmin` role
+- Credentials to a Snowflake user account with the `securityadmin` role
 - A Permifrost spec file
 
 ### Install
