@@ -89,6 +89,7 @@ The following GitHub secrets must be configured:
 ### For Testing
 - `SNOWFLAKE_USER`: Snowflake username
 - `SNOWFLAKE_PRIVATE_KEY`: Private key for Snowflake authentication
+- `SNOWFLAKE_KEY_PASSPHRASE`: Private key passphrase (leave empty if not used)
 - `SNOWFLAKE_ACCOUNT`: Snowflake account identifier
 - `SNOWFLAKE_DATABASE`: Snowflake database name
 - `SNOWFLAKE_ROLE`: Snowflake role name
