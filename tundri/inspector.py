@@ -48,17 +48,17 @@ def inspect_users():
     Get metadata of USER objects, using Snowflake's DESCRIBE command.
 
     Note:
-    We are using Snowflake's SHOW instead of it's DESCRIBE command to inspect 
+    We are using Snowflake's SHOW instead of it's DESCRIBE command to inspect
     objects. For most objects (Databases, Schemas, Warehouses), SHOW allows us to
-    fetch object metadata, while DESCRIBE would only the structure/schema of 
+    fetch object metadata, while DESCRIBE would only the structure/schema of
     a single object.
 
-    The only exception to this are USER objects: those objects have no internal 
+    The only exception to this are USER objects: those objects have no internal
     structure, and their metadata essentially describes their structure. Thus,
     SHOW and DESCRIBE return similar information, with DESCRIBE returning a more
     complete set of metadata of a user. The following attributes are missing from
     DESCRIBE and need to be added manually if required:
-    [created_on, owner, last_success_login, expires_at_time, locked_until_time, 
+    [created_on, owner, last_success_login, expires_at_time, locked_until_time,
     has_password, has_rsa_public_key]
 
     Returns:
@@ -72,7 +72,7 @@ def inspect_users():
         for user in users_list:
             cursor.execute(f"USE ROLE {INSPECTOR_ROLE}")
             cursor.execute(f"DESCRIBE USER {user}")
-            
+
             # DESCRIBE returns one row per user attribute, while SHOW returns one column
             # per user attribute. Pivot the result of DESCRIBE so it works with the
             # `format_metadata_value()` function
@@ -80,7 +80,7 @@ def inspect_users():
                 row[0]: row[1] for row in cursor
             }  # Dict of user attributes in the form "attribute: value"
             formatted_row = {
-                key.lower(): format_metadata_value(key.lower(), value) 
+                key.lower(): format_metadata_value(key.lower(), value)
                 for _, (key, value) in enumerate(attributes.items())
             }  # `format_metadata_value()` expects keys to be lowercase
             name = formatted_row.pop("name")
