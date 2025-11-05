@@ -25,7 +25,9 @@ def drop_create(args):
     console.log("[bold][purple]Drop/create Snowflake objects[/purple] started[/bold]")
     if args.dry:
         log_dry_run_info()
-    is_success = drop_create_objects(args.permifrost_spec_path, args.dry)
+    is_success = drop_create_objects(
+        args.permifrost_spec_path, args.dry, args.skip_user
+    )
     if is_success:
         console.log(
             "[bold][purple]\nDrop/create Snowflake objects[/purple] completed successfully[/bold]\n"
@@ -62,6 +64,13 @@ def main():
         description="tundri - Drop, create and alter Snowflake objects and set permissions with Permifrost"
     )
     subparsers = parser.add_subparsers()
+    help_str_skip_user = """
+        Users to ignore from drop, create, and alter operations (space-separated list, case-sensitive).
+        Users with admin priviliges can't be inspected by the permifrost user, because
+        of them being higher in the role hierarchy then the default tundri inspector 
+        role. To avoid permission errors, skip those users during object inspection.
+        Altering skipped users through tundri won't work and needs to be done manually! 
+    """
 
     # Drop/create functionality
     parser_drop_create = subparsers.add_parser("drop_create", help="Drop, create and alter Snowflake objects")
@@ -69,6 +78,13 @@ def main():
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
     parser_drop_create.add_argument("--dry", action="store_true", help="Run in dry mode")
+    parser_drop_create.add_argument(
+        "--skip-user",
+        nargs="+",
+        metavar="USER_NAME",
+        default=["admin", "snowflake", "auto_dba"],
+        help=help_str_skip_user,
+    )
     parser_drop_create.set_defaults(func=drop_create)
 
     # Permifrost functionality
@@ -85,6 +101,13 @@ def main():
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
     parser_drop_create.add_argument("--dry", action="store_true", help="Run in dry mode")
+    parser_drop_create.add_argument(
+        "--skip-user",
+        nargs="+",
+        metavar="USER_NAME",
+        default=["admin", "snowflake", "auto_dba"],
+        help=help_str_skip_user,
+    )
     parser_drop_create.set_defaults(func=run)
 
     args = parser.parse_args()
