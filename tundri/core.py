@@ -246,7 +246,7 @@ def resolve_objects(
 
 
 def drop_create_objects(
-    permifrost_spec_path: str, is_dry_run: bool, skip_user: List[str]
+    permifrost_spec_path: str, is_dry_run: bool, users_to_skip: List[str]
 ):
     """
     Drop and create Snowflake objects based on Permifrost specification and inspection of Snowflake metadata.
@@ -254,7 +254,7 @@ def drop_create_objects(
     Args:
         permifrost_spec_path: path to the Permifrost specification file
         is_dry_run: flag to run the operation in dry-run mode
-        exclude_user: list of users to exclude from drop, create, alter operations
+        users_to_skip: list of users to skip during rom drop, create, alter operations
 
     Returns:
         bool: True if the operation was successful, False otherwise
@@ -262,7 +262,7 @@ def drop_create_objects(
     permifrost_spec = load(open(permifrost_spec_path, "r"), Loader=Loader)
 
     for object_type in OBJECT_TYPES:
-        existing_objects = inspect_object_type(object_type, skip_user)
+        existing_objects = inspect_object_type(object_type, users_to_skip)
         ought_objects = parse_object_type(permifrost_spec, object_type)
         all_ddl_statements[object_type] = resolve_objects(
             existing_objects,

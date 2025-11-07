@@ -62,7 +62,7 @@ def inspect_schemas() -> FrozenSet[Schema]:
     return frozenset([Schema(name=name) for name in existing_schema_names])
 
 
-def inspect_users(skip_user: List[str]) -> FrozenSet[User]:
+def inspect_users(users_to_skip: List[str]) -> FrozenSet[User]:
     """
     Get metadata of USER objects, using Snowflake's DESCRIBE command.
 
@@ -104,7 +104,7 @@ def inspect_users(skip_user: List[str]) -> FrozenSet[User]:
                 name = formatted_row.pop("name")
                 data.append(User(name=name, params=formatted_row))
             except ProgrammingError as e:
-                if "insufficient privileges" in e.msg.lower() and user in skip_user:
+                if "insufficient privileges" in e.msg.lower() and user in users_to_skip:
                     console.log(
                         "[bold][red]WARNING[/bold][/red]: Skipping metadata retrieval",
                         f"for user {user}: Permifrost user doesn't have DESCRIBE",
@@ -116,13 +116,13 @@ def inspect_users(skip_user: List[str]) -> FrozenSet[User]:
 
 
 def inspect_object_type(
-    object_type: str, skip_user: List[str]
+    object_type: str, users_to_skip: List[str]
 ) -> FrozenSet[SnowflakeObject]:
     """Initialize Snowflake objects of a given type from Snowflake metadata.
 
     Args:
         object_type: Object type e.g. "database", "user", etc
-        skip_user: list of users to skip during inspection
+        users_to_skip: list of users to skip during inspection
 
     Returns:
         inspected_objects: set of instances of `SnowflakeObject` subclasses
@@ -130,7 +130,7 @@ def inspect_object_type(
     if object_type == "schema":
         return inspect_schemas()
     if object_type == "user":
-        return inspect_users(skip_user)
+        return inspect_users(users_to_skip)
 
     with get_snowflake_cursor() as cursor:
         cursor.execute(f"USE ROLE {INSPECTOR_ROLE}")

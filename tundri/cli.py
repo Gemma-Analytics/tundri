@@ -26,7 +26,7 @@ def drop_create(args):
     if args.dry:
         log_dry_run_info()
     is_success = drop_create_objects(
-        args.permifrost_spec_path, args.dry, args.skip_user
+        args.permifrost_spec_path, args.dry, args.users_to_skip
     )
     if is_success:
         console.log(
@@ -64,7 +64,7 @@ def main():
         description="tundri - Drop, create and alter Snowflake objects and set permissions with Permifrost"
     )
     subparsers = parser.add_subparsers()
-    help_str_skip_user = """
+    help_str_users_to_skip = """
         Users to ignore from drop, create, and alter operations (space-separated list, case-sensitive).
         Users with admin priviliges can't be inspected by the permifrost user, because
         of them being higher in the role hierarchy then the default tundri inspector 
@@ -79,11 +79,11 @@ def main():
     )
     parser_drop_create.add_argument("--dry", action="store_true", help="Run in dry mode")
     parser_drop_create.add_argument(
-        "--skip-user",
+        "--users-to-skip",
         nargs="+",
         metavar="USER_NAME",
         default=["admin", "snowflake", "auto_dba"],
-        help=help_str_skip_user,
+        help=help_str_users_to_skip,
     )
     parser_drop_create.set_defaults(func=drop_create)
 
@@ -102,11 +102,11 @@ def main():
     )
     parser_drop_create.add_argument("--dry", action="store_true", help="Run in dry mode")
     parser_drop_create.add_argument(
-        "--skip-user",
+        "--users-to-skip",
         nargs="+",
         metavar="USER_NAME",
         default=["admin", "snowflake", "auto_dba"],
-        help=help_str_skip_user,
+        help=help_str_users_to_skip,
     )
     parser_drop_create.set_defaults(func=run)
 

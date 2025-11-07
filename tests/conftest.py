@@ -34,7 +34,7 @@ def test_values():
 
 
 @pytest.fixture(scope="session")
-def skip_user():
+def users_to_skip():
     """
     List of users with admin priviliges, which cannot be inspected by the permifrost
     user and that should be skipped during drop, create, alter operations
