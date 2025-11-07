@@ -1,7 +1,6 @@
 import logging
 import os
 from typing import FrozenSet, Dict, List
-from snowflake.connector.cursor import SnowflakeCursor
 
 from rich.console import Console
 from rich.logging import RichHandler
@@ -128,7 +127,6 @@ def ignore_system_defined_roles(
 
 
 def ignore_existing_users(
-    cursor: SnowflakeCursor,
     objects: FrozenSet[SnowflakeObject],
 ) -> FrozenSet[SnowflakeObject]:
     """
@@ -141,8 +139,9 @@ def ignore_existing_users(
     Returns:
         "objects" parameter, but pruned of existing users
     """
-    users_list = get_existing_user(cursor)  # List of users (Strings)
-    return frozenset([obj for obj in objects if obj.name.lower() not in users_list])
+    with get_snowflake_cursor() as cursor:
+      users_list = get_existing_user(cursor)  # List of users (Strings)
+      return frozenset([obj for obj in objects if obj.name.lower() not in users_list])
 
 
 def resolve_objects(
@@ -187,9 +186,7 @@ def resolve_objects(
         # even if they already exist. Adding a IF NOT EXIST flag to the CREATE command
         # will only work partially, because tundri still would issue prompts for the
         # affected users
-        objects_to_create = ignore_existing_users(
-            get_snowflake_cursor(), objects_to_create
-        )
+        objects_to_create = ignore_existing_users(objects_to_create)
 
     # Prepare CREATE/DROP statements
     ddl_statements["create"] = [
