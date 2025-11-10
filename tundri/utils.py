@@ -1,7 +1,7 @@
 import logging
 import os
 import subprocess
-from typing import Dict, Type, T
+from typing import Dict, Type, T, List
 from pathlib import Path
 
 from dotenv import load_dotenv, dotenv_values
@@ -9,8 +9,9 @@ from dotenv import load_dotenv, dotenv_values
 from rich.console import Console
 from rich.logging import RichHandler
 from snowflake.connector import connect
+from snowflake.connector.cursor import SnowflakeCursor
 
-from tundri.constants import STRING_CASING_CONVERSION_MAP
+from tundri.constants import STRING_CASING_CONVERSION_MAP, INSPECTOR_ROLE
 
 
 logging.basicConfig(
@@ -206,3 +207,18 @@ def log_dry_run_info():
     console.log(80 * "-")
     console.log("[bold]Executing in [yellow]dry run mode[/yellow][/bold]")
     console.log(80 * "-")
+
+
+def get_existing_user(cursor: SnowflakeCursor) -> List[str]:
+    """
+    Fetch a list of existing usernames from Snowflake
+
+    Args:
+        cursor: active Snowflake cursor
+
+    Returns:
+        List of names from existing Snowflake user
+    """
+    cursor.execute(f"USE ROLE {INSPECTOR_ROLE}")
+    cursor.execute(f"SHOW USERS")
+    return [row[0].lower() for row in cursor]  # List of user names (Strings)

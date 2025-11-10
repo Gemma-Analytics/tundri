@@ -19,6 +19,7 @@ from tundri.utils import (
     get_configs,
     get_snowflake_cursor,
     format_params,
+    get_existing_user,
 )
 
 
@@ -125,6 +126,24 @@ def ignore_system_defined_roles(
     )
 
 
+def ignore_existing_users(
+    objects: FrozenSet[SnowflakeObject],
+) -> FrozenSet[SnowflakeObject]:
+    """
+    Ignore users that already exist
+
+    Args:
+        cursor: Active Snowflake cursor
+        ought_objects: User objects to check
+
+    Returns:
+        "objects" parameter, but pruned of existing users
+    """
+    with get_snowflake_cursor() as cursor:
+      users_list = get_existing_user(cursor)  # List of users (Strings)
+      return frozenset([obj for obj in objects if obj.name.lower() not in users_list])
+
+
 def resolve_objects(
     existing_objects: FrozenSet[SnowflakeObject],
     ought_objects: FrozenSet[SnowflakeObject],
@@ -161,6 +180,13 @@ def resolve_objects(
     # Remove create or drop statements for system-defined roles
     objects_to_create = ignore_system_defined_roles(objects_to_create)
     objects_to_drop = ignore_system_defined_roles(objects_to_drop)
+    if object_type == "user":
+        # Since we are skipping some users with admin priviliges during object inspection,
+        # tundri won't know whether those users already exist, and will try to create them
+        # even if they already exist. Adding a IF NOT EXIST flag to the CREATE command
+        # will only work partially, because tundri still would issue prompts for the
+        # affected users
+        objects_to_create = ignore_existing_users(objects_to_create)
 
     # Prepare CREATE/DROP statements
     ddl_statements["create"] = [
@@ -216,13 +242,16 @@ def resolve_objects(
     return ddl_statements
 
 
-def drop_create_objects(permifrost_spec_path: str, is_dry_run: bool):
+def drop_create_objects(
+    permifrost_spec_path: str, is_dry_run: bool, users_to_skip: List[str]
+):
     """
     Drop and create Snowflake objects based on Permifrost specification and inspection of Snowflake metadata.
 
     Args:
         permifrost_spec_path: path to the Permifrost specification file
         is_dry_run: flag to run the operation in dry-run mode
+        users_to_skip: list of users to skip during rom drop, create, alter operations
 
     Returns:
         bool: True if the operation was successful, False otherwise
@@ -230,7 +259,7 @@ def drop_create_objects(permifrost_spec_path: str, is_dry_run: bool):
     permifrost_spec = load(open(permifrost_spec_path, "r"), Loader=Loader)
 
     for object_type in OBJECT_TYPES:
-        existing_objects = inspect_object_type(object_type)
+        existing_objects = inspect_object_type(object_type, users_to_skip)
         ought_objects = parse_object_type(permifrost_spec, object_type)
         all_ddl_statements[object_type] = resolve_objects(
             existing_objects,

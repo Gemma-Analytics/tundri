@@ -31,3 +31,12 @@ def test_values():
     user/warehouses/databases
     """
     return {"test_user": "user1"}
+
+
+@pytest.fixture(scope="session")
+def users_to_skip():
+    """
+    List of users with admin priviliges, which cannot be inspected by the permifrost
+    user and that should be skipped during drop, create, alter operations
+    """
+    return ["admin", "snowflake", "auto_dba"]
