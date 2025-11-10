@@ -97,20 +97,20 @@ def print_ddl_statements(statements: Dict) -> None:
     console.log()
 
 
-def execute_ddl(cursor, statements: List) -> None:
+def execute_ddl(statements: List) -> None:
     """Execute drop, create and alter statements in sequence for each object type.
 
     Args:
-        cursor: Snowflake API cursor object
         statements: list with drop, create and alter statements in sequence for all
                     object types
     """
     console.log("\n[bold]Executing DDL statements[/bold]:")
-    for s in statements:
-        cursor.execute(s)
-        if s.startswith("USE ROLE"):
-            continue
-        console.log(f"[green]\u2713[/green] [italic]{s}[/italic]")
+    with get_snowflake_cursor() as cursor:
+        for s in statements:
+            cursor.execute(s)
+            if s.startswith("USE ROLE"):
+                continue
+            console.log(f"[green]\u2713[/green] [italic]{s}[/italic]")
 
 
 def ignore_system_defined_roles(
@@ -140,8 +140,8 @@ def ignore_existing_users(
         "objects" parameter, but pruned of existing users
     """
     with get_snowflake_cursor() as cursor:
-      users_list = get_existing_user(cursor)  # List of users (Strings)
-      return frozenset([obj for obj in objects if obj.name.lower() not in users_list])
+        users_list = get_existing_user(cursor)  # List of users (Strings)
+        return frozenset([obj for obj in objects if obj.name.lower() not in users_list])
 
 
 def resolve_objects(
@@ -302,6 +302,6 @@ def drop_create_objects(
             return False
 
     if not is_dry_run:
-        execute_ddl(get_snowflake_cursor(), ddl_statements_seq)
+        execute_ddl(ddl_statements_seq)
 
     return True
