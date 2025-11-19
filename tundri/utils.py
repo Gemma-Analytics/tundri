@@ -204,9 +204,9 @@ def run_command(command):
 
 
 def log_dry_run_info():
-    console.log(80 * "-")
+    console.log(20 * "-")
     console.log("[bold]Executing in [yellow]dry run mode[/yellow][/bold]")
-    console.log(80 * "-")
+    console.log(20 * "-")
 
 
 def get_existing_user(cursor: SnowflakeCursor) -> List[str]:
