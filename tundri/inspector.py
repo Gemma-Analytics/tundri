@@ -154,7 +154,7 @@ def inspect_object_type(
     for object in data:
         name = object.pop("name")
         # Ignore Snowflake system objects
-        if name.startswith("system$"):
+        if name.startswith("system$") or name.startswith("user$"):
             continue
         inspected_objects.append(OBJECT_TYPE_MAP[object_type](name=name, params=object))
 
