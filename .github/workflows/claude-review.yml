@@ -1,0 +1,24 @@
+name: Claude Code Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+permissions:
+  id-token: write
+  contents: read
+  pull-requests: write
+  issues: write
+
+jobs:
+  review:
+    uses: Gemma-Analytics/.github/.github/workflows/claude.yml@main
+    with:
+      prompt: |
+        /review
+        Additionally, check for:
+        - Proper Permifrost YAML structure and Snowflake access control patterns
+        - No hardcoded credentials or account identifiers
+        - Correct role hierarchy and privilege assignments
+      max_turns: "5"
+    secrets: inherit
