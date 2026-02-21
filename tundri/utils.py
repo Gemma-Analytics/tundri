@@ -23,7 +23,9 @@ console = Console()
 
 # Suppress urllib3 connection warnings from Snowflake connector
 logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
-logging.getLogger("snowflake.connector.vendored.urllib3.connectionpool").setLevel(logging.ERROR)
+logging.getLogger("snowflake.connector.vendored.urllib3.connectionpool").setLevel(
+    logging.ERROR
+)
 
 
 class ConfigurationError(Exception):
@@ -34,7 +36,7 @@ def load_env_var(path_to_env: str):
     """
     Loads environment variables from a dotenv file.
     Dotenv file has to live in the same directory as the Permifrost specifications file.
-    If an evironment variable with the same name already exists in on the system (e.g., 
+    If an evironment variable with the same name already exists in on the system (e.g.,
     in .bashrc), the existing variable is overwritten with the corresponding value from
     the dotenv file. Filename has to be ".env".
 
@@ -48,11 +50,13 @@ def load_env_var(path_to_env: str):
         .parent  # Drop filename, and only retain dir from path
     )
     path_to_dotenv = path_to_dotenv / ".env"
-    
+
     console.log(f"Checking for [italic]{str(path_to_dotenv)}[/italic]")
     if path_to_dotenv.is_file():
         console.log("Found dotenv file in directory; parsing")
-        env_var = dotenv_values(path_to_dotenv)  # Dump the contents of .env in a variable
+        env_var = dotenv_values(
+            path_to_dotenv
+        )  # Dump the contents of .env in a variable
         if not env_var:
             console.log("Dotenv file is empty, nothing to parse")
             console.log("Using system's environment variables instead")
@@ -61,8 +65,8 @@ def load_env_var(path_to_env: str):
             for key, value in env_var.items():
                 console.log(f"{key}={value}")
             console.log(
-                "\nThe following environment variables already exist on the system " + 
-                "and will be overwritten with the contents of the dotenv file:"
+                "\nThe following environment variables already exist on the system "
+                + "and will be overwritten with the contents of the dotenv file:"
             )
             for key, value in env_var.items():
                 this_value = os.environ.get(key)

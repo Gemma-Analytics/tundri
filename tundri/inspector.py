@@ -57,6 +57,9 @@ def inspect_schemas() -> FrozenSet[Schema]:
     existing_schema_names = []
     for database, schemas in existing_schemas.items():
         for schema in schemas:
+            # Ignore temporary Snowflake schemas that end with _next or _NEXT
+            if schema.upper().endswith("_NEXT"):
+                continue
             existing_schema_names.append(f"{database}.{schema}")
 
     return frozenset([Schema(name=name) for name in existing_schema_names])
@@ -137,7 +140,8 @@ def inspect_object_type(
         cursor.execute(f"SHOW {plural(object_type)}")
         desc = cursor.description
         column_names = [
-            parameter_name_map.get(object_type, dict()).get(col[0], col[0]) for col in desc
+            parameter_name_map.get(object_type, dict()).get(col[0], col[0])
+            for col in desc
         ]
         formatted_rows = [
             tuple(

@@ -6,11 +6,7 @@ from rich.console import Console
 from rich.logging import RichHandler
 
 from tundri.core import drop_create_objects
-from tundri.utils import (
-    run_command,
-    log_dry_run_info,
-    load_env_var
-)
+from tundri.utils import run_command, log_dry_run_info, load_env_var
 
 
 logging.basicConfig(
@@ -73,11 +69,15 @@ def main():
     """
 
     # Drop/create functionality
-    parser_drop_create = subparsers.add_parser("drop_create", help="Drop, create and alter Snowflake objects")
+    parser_drop_create = subparsers.add_parser(
+        "drop_create", help="Drop, create and alter Snowflake objects"
+    )
     parser_drop_create.add_argument(
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
-    parser_drop_create.add_argument("--dry", action="store_true", help="Run in dry mode")
+    parser_drop_create.add_argument(
+        "--dry", action="store_true", help="Run in dry mode"
+    )
     parser_drop_create.add_argument(
         "--users-to-skip",
         nargs="+",
@@ -92,15 +92,21 @@ def main():
     parser_drop_create.add_argument(
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
-    parser_drop_create.add_argument("--dry", action="store_true", help="Run in dry mode")
+    parser_drop_create.add_argument(
+        "--dry", action="store_true", help="Run in dry mode"
+    )
     parser_drop_create.set_defaults(func=permifrost)
 
     # Run both
-    parser_drop_create = subparsers.add_parser("run", help="Run drop_create and then permifrost")
+    parser_drop_create = subparsers.add_parser(
+        "run", help="Run drop_create and then permifrost"
+    )
     parser_drop_create.add_argument(
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
-    parser_drop_create.add_argument("--dry", action="store_true", help="Run in dry mode")
+    parser_drop_create.add_argument(
+        "--dry", action="store_true", help="Run in dry mode"
+    )
     parser_drop_create.add_argument(
         "--users-to-skip",
         nargs="+",
