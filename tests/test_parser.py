@@ -55,6 +55,35 @@ def test_required_params_warehouse():
     assert "missing: ['warehouse_size', 'auto_suspend']" in str(exc.value)
 
 
+def test_user_without_password_gets_auto_generated_password():
+    """Asserts that a user without password in meta gets an auto-generated password"""
+    spec_path = "tests/data/correct_required_params_spec.yml"
+    permifrost_spec = load(open(spec_path, "r"), Loader=Loader)
+
+    users = parse_object_type(permifrost_spec, "user")
+    user = next(iter(users))
+
+    # User spec does not have a password in meta
+    assert "password" not in permifrost_spec["users"][0]["bob"].get("meta", {})
+
+    # But the parsed user should have an auto-generated password
+    assert "password" in user.params
+    assert len(user.params["password"]) == 32
+    assert user.params["must_change_password"] == True
+
+
+def test_user_with_explicit_password_keeps_it():
+    """Asserts that a user with an explicit password in meta keeps it unchanged"""
+    spec_path = "tests/data/uppercase_meta_params_spec.yml"
+    permifrost_spec = load(open(spec_path, "r"), Loader=Loader)
+
+    users = parse_object_type(permifrost_spec, "user")
+    user = next(iter(users))
+
+    # User spec has an explicit password — it should not be overwritten
+    assert user.params["password"] == "1passwordvault"
+
+
 def test_meta_params_case_conversion():
     """Asserts that meta parameters are converted to lowercase when parsed"""
     uppercase_spec_path = "tests/data/uppercase_meta_params_spec.yml"

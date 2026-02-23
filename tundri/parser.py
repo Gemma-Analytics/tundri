@@ -1,3 +1,6 @@
+import secrets
+import string
+
 from yaml import load, Loader
 from pprint import pprint
 from typing import FrozenSet
@@ -5,6 +8,28 @@ from typing import FrozenSet
 from tundri.constants import OBJECT_TYPES, OBJECT_TYPE_MAP
 from tundri.objects import SnowflakeObject, Schema, ConfigurationValueError
 from tundri.utils import plural, format_metadata_value
+
+
+def _generate_random_password(length: int = 32) -> str:
+    """Generate a random password for Snowflake users that don't have one specified.
+
+    Snowflake requires a password when creating a user via CREATE USER, even for
+    service users that authenticate via RSA key pair. This generates a strong random
+    password that satisfies Snowflake's password policy.
+    """
+    alphabet = string.ascii_letters + string.digits + string.punctuation
+    # Ensure at least one of each required character type
+    password = [
+        secrets.choice(string.ascii_uppercase),
+        secrets.choice(string.ascii_lowercase),
+        secrets.choice(string.digits),
+        secrets.choice(string.punctuation),
+    ]
+    password += [secrets.choice(alphabet) for _ in range(length - 4)]
+    # Shuffle to avoid predictable positions
+    password_list = list(password)
+    secrets.SystemRandom().shuffle(password_list)
+    return "".join(password_list)
 
 PERMIFROST_YAML_FILEPATH = "examples/permifrost.yml"
 
@@ -79,9 +104,16 @@ def parse_object_type(
         object_spec = object[object_name]
         params = dict()
         if "meta" in object_spec.keys():
-            params = object_spec["meta"]  # Use all contents of meta as DDL parameters
+            params = dict(object_spec["meta"])  # Copy to avoid mutating the input
             for name, value in params.items():
                 params[name] = format_metadata_value(name, value)
+        # Snowflake requires a password in CREATE USER statements. If none is
+        # specified in the YAML (common for service users with key-pair auth),
+        # generate a random one so the DDL succeeds. The password is never
+        # usable in practice — especially for can_login: no users.
+        if object_type == "user" and "password" not in params:
+            params["password"] = _generate_random_password()
+            params["must_change_password"] = True
         new_parsed_object = OBJECT_TYPE_MAP[object_type](
             name=object_name, params=params
         )
