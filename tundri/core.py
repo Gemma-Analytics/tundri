@@ -264,13 +264,16 @@ def resolve_objects(
         # Params to SET: desired state differs from current state
         params_to_set = dict(ought_params_set.difference(existing_params_set))
 
-        # Params to UNSET: exist in Snowflake with a non-empty value but removed from spec
+        # Params to UNSET: exist in Snowflake with a non-empty value but removed from spec.
+        # Snowflake represents cleared/default values as the string 'null', so that is also
+        # treated as empty (no need to UNSET a param that is already at its default).
         params_to_unset = {
             key
             for key in params_to_unset_if_absent.get(object_type, [])
             if key not in ought.params
             and existing.params.get(key) is not None
             and existing.params.get(key) != ""
+            and existing.params.get(key) != "null"
         }
 
         if not params_to_set and not params_to_unset:

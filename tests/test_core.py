@@ -39,6 +39,22 @@ def test_resolve_objects_no_unset_when_param_not_set_in_snowflake():
     assert result["alter"] == []
 
 
+def test_resolve_objects_no_unset_when_param_is_null_string_in_snowflake():
+    """No UNSET should be generated when the param value is 'null' (Snowflake default representation)."""
+    existing = Warehouse(
+        name="WH1",
+        params={"warehouse_size": "xsmall", "auto_suspend": "60", "comment": "null"},
+    )
+    ought = Warehouse(
+        name="WH1",
+        params={"warehouse_size": "xsmall", "auto_suspend": "60"},
+    )
+
+    result = resolve_objects(frozenset([existing]), frozenset([ought]))
+
+    assert result["alter"] == []
+
+
 def test_resolve_objects_generates_set_and_unset_simultaneously():
     """Both SET and UNSET can be generated in the same run for the same object."""
     existing = Warehouse(

@@ -74,7 +74,8 @@ def test_user_unset_param(test_credentials, test_values, users_to_skip):
     user_after_unset = next(
         u for u in users_after_unset if u.name.lower() == test_user.lower()
     )
-    assert not user_after_unset.params.get("comment")
+    # Snowflake returns the string 'null' for cleared/default fields (not Python None)
+    assert user_after_unset.params.get("comment") in (None, "null", "")
 
 
 def test_user_removal(test_credentials, test_values, users_to_skip):
