@@ -14,6 +14,23 @@ With only Permifrost, one would have to manually create the objects and then run
 ### In a nutshell
 **tundri** reads the [Permifrost spec file](https://gitlab.com/gitlab-data/permifrost#spec_file) and compares with the current state of the Snowflake account. It then creates, drops, and alters the objects to match. It leverages Permifrost's YAML `meta` tags to set attributes like `default_role` for users and `warehouse_size` for warehouses. Once the objects are created, tundri runs Permifrost to set the permissions.
 
+### Reconciliation logic
+
+tundri compares the desired state (spec) with the current Snowflake state and generates the minimum set of DDL statements needed:
+
+| Scenario | Action |
+|----------|--------|
+| Object in spec, not in Snowflake | `CREATE` |
+| Object in Snowflake, not in spec | `DROP` |
+| Object in both, params changed | `ALTER ... SET ...` |
+| Param removed from spec, has value in Snowflake | `ALTER ... UNSET ...` |
+
+> [!NOTE]
+> Schemas are never dropped — tundri only creates them.
+
+> [!NOTE]
+> When a param (e.g. `rsa_public_key`, `comment`, `default_warehouse`) is removed from the spec but still has a non-empty value in Snowflake, tundri generates an `ALTER ... UNSET <param>` statement to reset it to the Snowflake default. Params with no value in Snowflake are silently ignored.
+
 ## Getting started
 
 ### Prerequisites
