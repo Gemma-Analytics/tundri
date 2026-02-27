@@ -28,11 +28,42 @@ all_ddl_statements = {object_type: None for object_type in OBJECT_TYPES}
 drop_template = "USE ROLE {role};DROP {object_type} {name};"
 create_template = "USE ROLE {role};CREATE {object_type} {name} {extra_sql};"
 alter_template = "USE ROLE {role};ALTER {object_type} {name} SET {parameters};"
+unset_template = "USE ROLE {role};ALTER {object_type} {name} UNSET {parameters};"
 
 objects_to_ignore_in_alter = {"user": ["snowflake"]}
 params_to_ignore_in_alter = {
     "user": ["password", "must_change_password"],
     "warehouse": ["initially_suspended", "statement_timeout_in_seconds"],
+}
+
+# Params that should be UNSET in Snowflake when removed from the spec.
+# When a param exists in Snowflake with a non-empty value but is absent from the spec,
+# an UNSET statement is generated to reset it to its default. Extend this list with any
+# user-configurable param that should be cleared when removed from the spec.
+params_to_unset_if_absent = {
+    "user": [
+        "rsa_public_key",
+        "rsa_public_key_2",
+        "default_warehouse",
+        "default_namespace",
+        "comment",
+        "email",
+        "first_name",
+        "last_name",
+        "display_name",
+        "login_name",
+        "network_policy",
+        "disabled",
+    ],
+    "warehouse": [
+        "comment",
+        "resource_monitor",
+        "max_cluster_count",
+        "min_cluster_count",
+    ],
+    "database": ["comment"],
+    "role": ["comment"],
+    "schema": [],
 }
 
 
@@ -222,22 +253,51 @@ def resolve_objects(
 
         for p in params_to_ignore_in_alter.get(object_type, list()):
             ought.params.pop(p, None)
+            existing.params.pop(p, None)
+
+        if ought.name in objects_to_ignore_in_alter.get(object_type, list()):
+            continue
 
         ought_params_set = set(ought.params.items())
         existing_params_set = set(existing.params.items())
-        params_to_alter_set = ought_params_set.difference(existing_params_set)
-        if not params_to_alter_set:
+
+        # Params to SET: desired state differs from current state
+        params_to_set = dict(ought_params_set.difference(existing_params_set))
+
+        # Params to UNSET: exist in Snowflake with a non-empty value but removed from spec.
+        # Snowflake represents cleared/default values as the string 'null', so that is also
+        # treated as empty (no need to UNSET a param that is already at its default).
+        params_to_unset = {
+            key
+            for key in params_to_unset_if_absent.get(object_type, [])
+            if key not in ought.params
+            and existing.params.get(key) is not None
+            and existing.params.get(key) != ""
+            and existing.params.get(key) != "null"
+        }
+
+        if not params_to_set and not params_to_unset:
             continue
-        if ought.name in objects_to_ignore_in_alter.get(object_type, list()):
-            continue
-        ddl_statements["alter"].append(
-            alter_template.format(
-                role=role,
-                object_type=object_type,
-                name=ought.name,
-                parameters=format_params(dict(params_to_alter_set)),
+
+        if params_to_set:
+            ddl_statements["alter"].append(
+                alter_template.format(
+                    role=role,
+                    object_type=object_type,
+                    name=ought.name,
+                    parameters=format_params(params_to_set),
+                )
             )
-        )
+
+        if params_to_unset:
+            ddl_statements["alter"].append(
+                unset_template.format(
+                    role=role,
+                    object_type=object_type,
+                    name=ought.name,
+                    parameters=", ".join(sorted(params_to_unset)),
+                )
+            )
 
     return ddl_statements
 
