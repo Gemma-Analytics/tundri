@@ -12,13 +12,10 @@ permissions:
 
 jobs:
   review:
-    uses: Gemma-Analytics/.github/.github/workflows/claude.yml@main
+    uses: Gemma-Analytics/.github/.github/workflows/claude-review.yml@main
     with:
-      prompt: |
-        /review
-        Additionally, check for:
+      additional_instructions: |
         - Proper Permifrost YAML structure and Snowflake access control patterns
         - No hardcoded credentials or account identifiers
         - Correct role hierarchy and privilege assignments
-      max_turns: "5"
     secrets: inherit
