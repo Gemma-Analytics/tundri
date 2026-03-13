@@ -1,5 +1,5 @@
 from tundri.core import build_statements_list, resolve_objects
-from tundri.objects import Warehouse
+from tundri.objects import User, Warehouse
 
 
 def test_resolve_objects_generates_unset_for_removed_param():
@@ -74,6 +74,50 @@ def test_resolve_objects_generates_set_and_unset_simultaneously():
     stmts_combined = " ".join(result["alter"])
     assert " SET " in stmts_combined
     assert " UNSET " in stmts_combined
+
+
+def test_resolve_objects_no_unset_for_non_rsa_user_params():
+    """Non-RSA user params (disabled, login_name, comment, etc.) should never generate UNSET."""
+    existing = User(
+        name="testuser",
+        params={
+            "default_role": "testrole",
+            "disabled": "false",
+            "login_name": "testuser",
+            "comment": "some comment",
+            "email": "test@example.com",
+        },
+    )
+    ought = User(
+        name="testuser",
+        params={"default_role": "testrole"},
+    )
+
+    result = resolve_objects(frozenset([existing]), frozenset([ought]))
+
+    unset_stmts = [s for s in result["alter"] if "UNSET" in s]
+    assert unset_stmts == [], f"Unexpected UNSET statements: {unset_stmts}"
+
+
+def test_resolve_objects_generates_unset_for_rsa_keys():
+    """RSA public keys should still generate UNSET when removed from spec."""
+    existing = User(
+        name="testuser",
+        params={
+            "default_role": "testrole",
+            "rsa_public_key": "MIIBIjANBgkq...",
+        },
+    )
+    ought = User(
+        name="testuser",
+        params={"default_role": "testrole"},
+    )
+
+    result = resolve_objects(frozenset([existing]), frozenset([ought]))
+
+    unset_stmts = [s for s in result["alter"] if "UNSET" in s]
+    assert len(unset_stmts) == 1
+    assert "rsa_public_key" in unset_stmts[0].lower()
 
 
 def test_build_statements_list():

@@ -44,16 +44,6 @@ params_to_unset_if_absent = {
     "user": [
         "rsa_public_key",
         "rsa_public_key_2",
-        "default_warehouse",
-        "default_namespace",
-        "comment",
-        "email",
-        "first_name",
-        "last_name",
-        "display_name",
-        "login_name",
-        "network_policy",
-        "disabled",
     ],
     "warehouse": [
         "comment",
