@@ -96,18 +96,83 @@ def build_statements_list(
     return statements_seq
 
 
-def print_ddl_statements(statements: Dict) -> None:
-    """Print DDL statements to be executed."""
+def _count_operations(statements: List) -> tuple:
+    """Count DDL operations in one pass.
+
+    Returns (create, drop, alter_set, alter_unset).
+    """
+    create = drop = alter_set = alter_unset = 0
+    for s in statements:
+        if s.startswith("USE ROLE"):
+            continue
+        if s.startswith("CREATE"):
+            create += 1
+        elif s.startswith("DROP"):
+            drop += 1
+        elif s.startswith("ALTER"):
+            if " UNSET " in s:
+                alter_unset += 1
+            else:
+                alter_set += 1
+    return create, drop, alter_set, alter_unset
+
+
+def _format_summary(create: int, drop: int, alter_set: int, alter_unset: int) -> str:
+    """Format pre-computed operation counts into a summary string."""
+    alter_total = alter_set + alter_unset
+    if alter_total > 0:
+        alter_parts = []
+        if alter_set > 0:
+            alter_parts.append(f"{alter_set} SET")
+        if alter_unset > 0:
+            alter_parts.append(f"{alter_unset} UNSET")
+        alter_str = f"{alter_total} ALTER ({', '.join(alter_parts)})"
+    else:
+        alter_str = "0 ALTER"
+    return f"{create} CREATE, {alter_str}, {drop} DROP"
+
+
+def build_summary_line(statements: List) -> str | None:
+    """Build a summary line showing counts of each DDL operation type.
+
+    Parses statement strings to classify operations. USE ROLE statements are skipped.
+    ALTER statements are sub-classified as SET or UNSET by checking for ' UNSET '.
+
+    Returns:
+        Summary: e.g. '3 CREATE, 2 ALTER (1 SET, 1 UNSET), 0 DROP', or None if empty.
+    """
+    if not statements:
+        return None
+    return _format_summary(*_count_operations(statements))
+
+
+def print_ddl_statements(statements: List) -> None:
+    """Print DDL statements to be executed with a summary line."""
     if not statements:
         console.print(
             "No statements to execute"
             " (the state of Snowflake objects matches the Permifrost spec)\n"
         )
         return
+
+    create_count, drop_count, alter_set_count, alter_unset_count = _count_operations(
+        statements
+    )
+    summary = _format_summary(
+        create_count, drop_count, alter_set_count, alter_unset_count
+    )
+    if drop_count > 0:
+        summary = summary.replace(f"{drop_count} DROP", f"[red]{drop_count} DROP[/red]")
+    console.print(summary)
+    console.print()
+
     for s in statements:
         if s.startswith("USE ROLE"):
             continue
-        console.print(f"[italic]- {s}[/italic]")
+        if s.startswith("DROP"):
+            console.print(f"[red]- {s}[/red]")
+        else:
+            console.print(f"[italic]- {s}[/italic]")
     console.print()
 
 
