@@ -37,37 +37,21 @@ def load_env_var(path_to_env: str):
     :param path_to_env: Path to .env file
     :return: --
     """
-    console.print("[bold][purple]Loading environment variables [/purple] started[/bold]")
-    path_to_dotenv = (
-        Path(path_to_env)
-        .resolve()  # Converts relative to absolute path
-        .parent  # Drop filename, and only retain dir from path
-    )
+    path_to_dotenv = Path(path_to_env).resolve().parent
     path_to_dotenv = path_to_dotenv / ".env"
 
-    console.print(f"Checking for [italic]{str(path_to_dotenv)}[/italic]")
     if path_to_dotenv.is_file():
-        console.print("Found dotenv file in directory; parsing")
-        env_var = dotenv_values(path_to_dotenv)  # Dump the contents of .env in a variable
+        env_var = dotenv_values(path_to_dotenv)
         if not env_var:
-            console.print("Dotenv file is empty, nothing to parse")
-            console.print("Using system's environment variables instead")
+            console.print("Empty .env file, using system environment variables")
         else:
-            console.print("Loading the following environment variables from dotenv:")
-            for key, value in env_var.items():
-                console.print(f"{key}={value}")
-            console.print(
-                "\nThe following environment variables already exist on the system "
-                + "and will be overwritten with the contents of the dotenv file:"
-            )
-            for key, value in env_var.items():
-                this_value = os.environ.get(key)
-                if this_value is not None:
-                    console.print(f"{key}={this_value}")
             load_dotenv(path_to_dotenv, override=True)
+            console.print(
+                f"Loaded {len(env_var)} environment variables"
+                f" from [italic]{str(path_to_dotenv)}[/italic]\n"
+            )
     else:
-        console.print(f"Could not find dotenv file under {str(path_to_dotenv)}")
-        console.print("Using system's environment variables instead")
+        console.print("No .env file found, using system environment variables")
 
 
 def get_configs() -> Dict[str, str]:
@@ -201,7 +185,9 @@ def run_command(command):
 
 
 def log_dry_run_info():
-    console.print("[bold][yellow]⚠ DRY RUN — no changes will be applied[/yellow][/bold]\n")
+    console.print(
+        "[bold][yellow]⚠ DRY RUN — no changes will be applied[/yellow][/bold]\n"
+    )
 
 
 def get_existing_user(cursor: SnowflakeCursor) -> List[str]:
