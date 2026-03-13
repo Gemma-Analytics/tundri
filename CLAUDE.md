@@ -105,6 +105,15 @@ PERMISSION_BOT_KEY_PASSPHRASE=<passphrase>
 - Rich console for styled output
 - Never commit directly to `main` — always create a feature branch and open a PR
 
+## Development Workflow
+
+Use the **superpowers** plugin and **feature-dev** skill for all non-trivial work on this repo:
+
+1. **Spec**: Use `superpowers:brainstorming` to define requirements and produce a design spec
+2. **Plan**: Use `superpowers:writing-plans` to break the spec into implementation tasks
+3. **Implement**: Use `superpowers:subagent-driven-development` or `superpowers:executing-plans` to execute the plan, with `feature-dev:feature-dev` for guided feature development
+4. **Review**: Use `superpowers:requesting-code-review` before merging
+
 ## Version & Release
 
 - Version in `pyproject.toml`
