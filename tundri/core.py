@@ -138,12 +138,7 @@ def build_summary_line(statements: List) -> str | None:
 
     alter_total = alter_set_count + alter_unset_count
     if alter_total > 0:
-        alter_parts = []
-        if alter_set_count > 0:
-            alter_parts.append(f"{alter_set_count} SET")
-        if alter_unset_count > 0:
-            alter_parts.append(f"{alter_unset_count} UNSET")
-        alter_str = f"{alter_total} ALTER ({', '.join(alter_parts)})"
+        alter_str = f"{alter_total} ALTER ({alter_set_count} SET, {alter_unset_count} UNSET)"
     else:
         alter_str = "0 ALTER"
 

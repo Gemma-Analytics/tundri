@@ -175,7 +175,7 @@ def test_build_summary_line_only_alters_set():
         "ALTER USER foo SET rsa_public_key='...'",
     ]
     result = build_summary_line(statements)
-    assert result == "0 CREATE, 1 ALTER (1 SET), 0 DROP"
+    assert result == "0 CREATE, 1 ALTER (1 SET, 0 UNSET), 0 DROP"
 
 
 def test_build_summary_line_only_alters_unset():
@@ -185,4 +185,4 @@ def test_build_summary_line_only_alters_unset():
         "ALTER USER foo UNSET rsa_public_key",
     ]
     result = build_summary_line(statements)
-    assert result == "0 CREATE, 1 ALTER (1 UNSET), 0 DROP"
+    assert result == "0 CREATE, 1 ALTER (0 SET, 1 UNSET), 0 DROP"
