@@ -11,8 +11,6 @@ console = Console()
 
 def manage(args):
     console.print("[bold][purple]Manage Snowflake objects[/purple] started[/bold]")
-    if args.dry:
-        log_dry_run_info()
     is_success = manage_objects(args.permifrost_spec_path, args.dry, args.users_to_skip)
     if is_success:
         console.print(
@@ -21,10 +19,6 @@ def manage(args):
         )
     else:
         sys.exit(1)
-
-
-# Keep drop_create as backwards-compatible alias
-drop_create = manage
 
 
 def permifrost(args):
@@ -38,7 +32,6 @@ def permifrost(args):
 
     if args.dry:
         cmd.append("--dry")
-        log_dry_run_info()
 
     console.print(f"Running command: \n[italic]{' '.join(cmd)}[/italic]\n")
     run_command(cmd)
@@ -54,10 +47,6 @@ def main():
     parser = argparse.ArgumentParser(
         description="tundri - Manage Snowflake objects and set permissions"
     )
-    if len(sys.argv) == 1:
-        parser.print_help()
-        sys.exit(1)
-
     subparsers = parser.add_subparsers()
     help_str_users_to_skip = """
         Users to ignore from object management operations
@@ -112,7 +101,13 @@ def main():
     )
     parser_run.set_defaults(func=run)
 
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
     args = parser.parse_args()
+    if args.dry:
+        log_dry_run_info()
     load_env_var(args.permifrost_spec_path)
     args.func(args)
 

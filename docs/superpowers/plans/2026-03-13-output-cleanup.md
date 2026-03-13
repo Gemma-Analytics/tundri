@@ -10,7 +10,7 @@
 
 **Spec:** `docs/superpowers/specs/2026-03-13-output-cleanup-design.md`
 
-**Sandbox for validation:** `/home/lui/projects/internal/gemma-sandbox-snowflake`
+**Sandbox for validation:** `<path-to-sandbox>`
 
 ---
 
@@ -57,7 +57,7 @@ Mechanical replacement of every `console.log(` with `console.print(` in utils.py
 
 - [ ] **Step 3: Run tests**
 
-Run: `cd /home/lui/projects/internal/tundri && uv run pytest tests/test_utils.py -v`
+Run: `cd <path-to-tundri> && uv run pytest tests/test_utils.py -v`
 Expected: All tests PASS (test_plural, test_treat_metadata_value, test_format_params — none depend on console output)
 
 - [ ] **Step 4: Commit**
@@ -93,7 +93,7 @@ Mechanical replacement of every `console.log(` with `console.print(` in core.py 
 
 - [ ] **Step 3: Run tests**
 
-Run: `cd /home/lui/projects/internal/tundri && uv run pytest tests/test_core.py -v`
+Run: `cd <path-to-tundri> && uv run pytest tests/test_core.py -v`
 Expected: All tests PASS
 
 - [ ] **Step 4: Commit**
@@ -185,12 +185,12 @@ Also fix the unclosed markup tag at line 54:
 
 - [ ] **Step 5: Run all tests**
 
-Run: `cd /home/lui/projects/internal/tundri && uv run pytest -v`
+Run: `cd <path-to-tundri> && uv run pytest -v`
 Expected: All tests PASS
 
 - [ ] **Step 6: Run dry-run against sandbox to verify no timestamps/line refs**
 
-Run: `cd /home/lui/projects/internal/gemma-sandbox-snowflake && uv run --project /home/lui/projects/internal/tundri tundri run --dry -p permifrost.yml 2>&1 | head -40`
+Run: `cd <path-to-sandbox> && uv run --project <path-to-tundri> tundri run --dry -p permifrost.yml 2>&1 | head -40`
 Expected: Output lines have NO `[HH:MM:SS]` timestamps on the left and NO `file.py:line` references on the right.
 
 - [ ] **Step 7: Commit**
@@ -226,7 +226,7 @@ And the completed message:
 
 - [ ] **Step 2: Run dry-run against sandbox to verify**
 
-Run: `cd /home/lui/projects/internal/gemma-sandbox-snowflake && uv run --project /home/lui/projects/internal/tundri tundri run --dry -p permifrost.yml 2>&1 | grep -i "manage\|drop/create"`
+Run: `cd <path-to-sandbox> && uv run --project <path-to-tundri> tundri run --dry -p permifrost.yml 2>&1 | grep -i "manage\|drop/create"`
 Expected: See "Manage Snowflake objects", no "Drop/create"
 
 - [ ] **Step 3: Commit**
@@ -266,7 +266,7 @@ Remove the `if args.dry: log_dry_run_info()` calls from:
 
 - [ ] **Step 3: Run dry-run against sandbox to verify single banner**
 
-Run: `cd /home/lui/projects/internal/gemma-sandbox-snowflake && uv run --project /home/lui/projects/internal/tundri tundri run --dry -p permifrost.yml 2>&1 | grep -c "DRY RUN"`
+Run: `cd <path-to-sandbox> && uv run --project <path-to-tundri> tundri run --dry -p permifrost.yml 2>&1 | grep -c "DRY RUN"`
 Expected: `1` (appears exactly once)
 
 - [ ] **Step 4: Commit**
@@ -316,7 +316,7 @@ def load_env_var(path_to_env: str):
 
 - [ ] **Step 2: Run dry-run against sandbox to verify condensed output**
 
-Run: `cd /home/lui/projects/internal/gemma-sandbox-snowflake && uv run --project /home/lui/projects/internal/tundri tundri run --dry -p permifrost.yml 2>&1 | head -10`
+Run: `cd <path-to-sandbox> && uv run --project <path-to-tundri> tundri run --dry -p permifrost.yml 2>&1 | head -10`
 Expected: See a single "Loaded N environment variables from ..." line, no individual variable listings
 
 - [ ] **Step 3: Commit**
@@ -400,7 +400,7 @@ def test_build_summary_line_only_alters_unset():
 
 - [ ] **Step 2: Run tests to verify they fail**
 
-Run: `cd /home/lui/projects/internal/tundri && uv run pytest tests/test_core.py::test_build_summary_line_mixed_operations -v`
+Run: `cd <path-to-tundri> && uv run pytest tests/test_core.py::test_build_summary_line_mixed_operations -v`
 Expected: FAIL with `ImportError: cannot import name 'build_summary_line'`
 
 - [ ] **Step 3: Commit**
@@ -468,7 +468,7 @@ def build_summary_line(statements: List) -> str | None:
 
 - [ ] **Step 2: Run tests to verify they pass**
 
-Run: `cd /home/lui/projects/internal/tundri && uv run pytest tests/test_core.py -v`
+Run: `cd <path-to-tundri> && uv run pytest tests/test_core.py -v`
 Expected: All tests PASS (including the 5 new summary line tests)
 
 - [ ] **Step 3: Update print_ddl_statements() to show summary and color DROPs**
@@ -503,12 +503,12 @@ def print_ddl_statements(statements: List) -> None:
 
 - [ ] **Step 4: Run dry-run against sandbox to verify summary line**
 
-Run: `cd /home/lui/projects/internal/gemma-sandbox-snowflake && uv run --project /home/lui/projects/internal/tundri tundri run --dry -p permifrost.yml 2>&1 | head -30`
+Run: `cd <path-to-sandbox> && uv run --project <path-to-tundri> tundri run --dry -p permifrost.yml 2>&1 | head -30`
 Expected: See the summary line (e.g. `0 CREATE, 23 ALTER (0 SET, 23 UNSET), 0 DROP`) before the statement list
 
 - [ ] **Step 5: Run all tests**
 
-Run: `cd /home/lui/projects/internal/tundri && uv run pytest -v`
+Run: `cd <path-to-tundri> && uv run pytest -v`
 Expected: All tests PASS
 
 - [ ] **Step 6: Commit**
@@ -528,12 +528,12 @@ git commit -m "feat: add DDL summary line with operation counts and red DROP hig
 
 - [ ] **Step 1: Run all tests**
 
-Run: `cd /home/lui/projects/internal/tundri && uv run pytest -v`
+Run: `cd <path-to-tundri> && uv run pytest -v`
 Expected: All tests PASS
 
 - [ ] **Step 2: Run dry-run against sandbox and verify full output format**
 
-Run: `cd /home/lui/projects/internal/gemma-sandbox-snowflake && uv run --project /home/lui/projects/internal/tundri tundri run --dry -p permifrost.yml 2>&1`
+Run: `cd <path-to-sandbox> && uv run --project <path-to-tundri> tundri run --dry -p permifrost.yml 2>&1`
 
 Verify the following against the target output in the spec:
 1. No timestamps or file:line references on any line
@@ -547,7 +547,7 @@ Verify the following against the target output in the spec:
 
 - [ ] **Step 3: Run a normal (non-dry) run against sandbox to verify execution path**
 
-Run: `cd /home/lui/projects/internal/gemma-sandbox-snowflake && uv run --project /home/lui/projects/internal/tundri tundri run -p permifrost.yml 2>&1`
+Run: `cd <path-to-sandbox> && uv run --project <path-to-tundri> tundri run -p permifrost.yml 2>&1`
 
 Verify the output still works correctly for the execution path (account confirmation prompt, DDL execution with checkmarks, etc.)
 
@@ -577,7 +577,7 @@ In the "What is Tundri" section, replace references to "DROP/CREATE/ALTER" with 
 
 - [ ] **Step 3: Run all tests one final time**
 
-Run: `cd /home/lui/projects/internal/tundri && uv run pytest -v`
+Run: `cd <path-to-tundri> && uv run pytest -v`
 Expected: All tests PASS
 
 - [ ] **Step 4: Commit**

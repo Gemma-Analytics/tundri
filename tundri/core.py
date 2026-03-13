@@ -37,6 +37,11 @@ params_to_ignore_in_alter = {
 # When a param exists in Snowflake with a non-empty value but is absent from the spec,
 # an UNSET statement is generated to reset it to its default. Extend this list with any
 # user-configurable param that should be cleared when removed from the spec.
+#
+# NOTE (breaking change from v1.3.x): The user list was expanded from just the two RSA
+# key params to include all commonly managed user attributes. Snowflake users whose spec
+# entries omit these fields will now receive ALTER USER ... UNSET statements to reset
+# them to Snowflake defaults. Review your spec entries before upgrading.
 params_to_unset_if_absent = {
     "user": [
         "rsa_public_key",
@@ -106,6 +111,37 @@ def build_statements_list(
     return statements_seq
 
 
+def _count_operations(statements: List) -> tuple:
+    """Count DDL operations in one pass.
+
+    Returns (create, drop, alter_set, alter_unset).
+    """
+    create = drop = alter_set = alter_unset = 0
+    for s in statements:
+        if s.startswith("USE ROLE"):
+            continue
+        if s.startswith("CREATE"):
+            create += 1
+        elif s.startswith("DROP"):
+            drop += 1
+        elif s.startswith("ALTER"):
+            if " UNSET " in s:
+                alter_unset += 1
+            else:
+                alter_set += 1
+    return create, drop, alter_set, alter_unset
+
+
+def _format_summary(create: int, drop: int, alter_set: int, alter_unset: int) -> str:
+    """Format pre-computed operation counts into a summary string."""
+    alter_total = alter_set + alter_unset
+    if alter_total > 0:
+        alter_str = f"{alter_total} ALTER ({alter_set} SET, {alter_unset} UNSET)"
+    else:
+        alter_str = "0 ALTER"
+    return f"{create} CREATE, {alter_str}, {drop} DROP"
+
+
 def build_summary_line(statements: List) -> str | None:
     """Build a summary line showing counts of each DDL operation type.
 
@@ -117,36 +153,7 @@ def build_summary_line(statements: List) -> str | None:
     """
     if not statements:
         return None
-
-    create_count = 0
-    drop_count = 0
-    alter_set_count = 0
-    alter_unset_count = 0
-
-    for s in statements:
-        if s.startswith("USE ROLE"):
-            continue
-        if s.startswith("CREATE"):
-            create_count += 1
-        elif s.startswith("DROP"):
-            drop_count += 1
-        elif s.startswith("ALTER"):
-            if " UNSET " in s:
-                alter_unset_count += 1
-            else:
-                alter_set_count += 1
-
-    alter_total = alter_set_count + alter_unset_count
-    if alter_total > 0:
-        alter_str = (
-            f"{alter_total} ALTER ({alter_set_count} SET, {alter_unset_count} UNSET)"
-        )
-    else:
-        alter_str = "0 ALTER"
-
-    drop_str = f"{drop_count} DROP"
-
-    return f"{create_count} CREATE, {alter_str}, {drop_str}"
+    return _format_summary(*_count_operations(statements))
 
 
 def print_ddl_statements(statements: List) -> None:
@@ -158,8 +165,12 @@ def print_ddl_statements(statements: List) -> None:
         )
         return
 
-    summary = build_summary_line(statements)
-    drop_count = sum(1 for s in statements if s.startswith("DROP"))
+    create_count, drop_count, alter_set_count, alter_unset_count = _count_operations(
+        statements
+    )
+    summary = _format_summary(
+        create_count, drop_count, alter_set_count, alter_unset_count
+    )
     if drop_count > 0:
         # Highlight DROP count in red within the summary
         summary = summary.replace(f"{drop_count} DROP", f"[red]{drop_count} DROP[/red]")

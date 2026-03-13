@@ -1,5 +1,5 @@
 from tundri.core import build_statements_list, build_summary_line, resolve_objects
-from tundri.objects import Warehouse
+from tundri.objects import User, Warehouse
 
 
 def test_resolve_objects_generates_unset_for_removed_param():
@@ -169,7 +169,7 @@ def test_build_summary_line_only_creates():
 
 
 def test_build_summary_line_only_alters_set():
-    """Only ALTER SET — no UNSET breakdown needed when all are SET."""
+    """Only ALTER SET — both sub-counts are shown even when UNSET count is 0."""
     statements = [
         "USE ROLE SECURITYADMIN",
         "ALTER USER foo SET rsa_public_key='...'",
@@ -186,3 +186,78 @@ def test_build_summary_line_only_alters_unset():
     ]
     result = build_summary_line(statements)
     assert result == "0 CREATE, 1 ALTER (0 SET, 1 UNSET), 0 DROP"
+
+
+# --- User UNSET behaviour ---
+
+
+def test_resolve_objects_generates_unset_for_user_rsa_keys():
+    """RSA key params generate UNSET when absent from spec (original behaviour)."""
+    existing = User(
+        name="alice",
+        params={"default_role": "analyst", "rsa_public_key": "MIIBI..."},
+    )
+    ought = User(name="alice", params={"default_role": "analyst"})
+
+    result = resolve_objects(frozenset([existing]), frozenset([ought]))
+
+    assert result["create"] == []
+    assert result["drop"] == []
+    assert len(result["alter"]) == 1
+    assert "UNSET" in result["alter"][0]
+    assert "rsa_public_key" in result["alter"][0].lower()
+
+
+def test_resolve_objects_generates_unset_for_expanded_user_params():
+    """Newly added user params (email, display_name, etc.) also generate UNSET."""
+    existing = User(
+        name="bob",
+        params={
+            "default_role": "analyst",
+            "email": "bob@example.com",
+            "display_name": "Bob Smith",
+            "comment": "managed user",
+        },
+    )
+    ought = User(name="bob", params={"default_role": "analyst"})
+
+    result = resolve_objects(frozenset([existing]), frozenset([ought]))
+
+    assert result["create"] == []
+    assert result["drop"] == []
+    assert len(result["alter"]) == 1
+    unset_stmt = result["alter"][0]
+    assert "UNSET" in unset_stmt
+    # All three absent params with non-empty Snowflake values should be unset
+    assert "email" in unset_stmt.lower()
+    assert "display_name" in unset_stmt.lower()
+    assert "comment" in unset_stmt.lower()
+
+
+def test_resolve_objects_no_unset_for_params_not_in_unset_list():
+    """Params absent from spec but not in params_to_unset_if_absent are not UNSETed."""
+    existing = User(
+        name="carol",
+        params={
+            "default_role": "analyst",
+            "type": "person",  # not in params_to_unset_if_absent
+        },
+    )
+    ought = User(name="carol", params={"default_role": "analyst"})
+
+    result = resolve_objects(frozenset([existing]), frozenset([ought]))
+
+    assert result["alter"] == []
+
+
+def test_resolve_objects_no_unset_for_user_param_already_empty_in_snowflake():
+    """No UNSET when the param is already empty/null in Snowflake."""
+    existing = User(
+        name="dave",
+        params={"default_role": "analyst", "email": "", "comment": "null"},
+    )
+    ought = User(name="dave", params={"default_role": "analyst"})
+
+    result = resolve_objects(frozenset([existing]), frozenset([ought]))
+
+    assert result["alter"] == []
