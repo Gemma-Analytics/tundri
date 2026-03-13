@@ -1,30 +1,23 @@
 import argparse
-import logging
 import sys
 
 from rich.console import Console
-from rich.logging import RichHandler
 
 from tundri.core import drop_create_objects
 from tundri.utils import load_env_var, log_dry_run_info, run_command
 
-logging.basicConfig(
-    level="WARN", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
-)
-log = logging.getLogger(__name__)
-log.setLevel("INFO")
 console = Console()
 
 
 def drop_create(args):
-    console.log("[bold][purple]Drop/create Snowflake objects[/purple] started[/bold]")
+    console.print("[bold][purple]Drop/create Snowflake objects[/purple] started[/bold]")
     if args.dry:
         log_dry_run_info()
     is_success = drop_create_objects(
         args.permifrost_spec_path, args.dry, args.users_to_skip
     )
     if is_success:
-        console.log(
+        console.print(
             "[bold][purple]\nDrop/create Snowflake objects[/purple]"
             " completed successfully[/bold]\n"
         )
@@ -33,7 +26,7 @@ def drop_create(args):
 
 
 def permifrost(args):
-    console.log("[bold][purple]Permifrost[/purple] started[/bold]")
+    console.print("[bold][purple]Permifrost[/purple] started[/bold]")
     cmd = [
         "permifrost",
         "run",
@@ -45,9 +38,9 @@ def permifrost(args):
         cmd.append("--dry")
         log_dry_run_info()
 
-    console.log(f"Running command: \n[italic]{' '.join(cmd)}[/italic]\n")
+    console.print(f"Running command: \n[italic]{' '.join(cmd)}[/italic]\n")
     run_command(cmd)
-    console.log("[bold][purple]Permifrost[/purple] completed successfully[bold]\n")
+    console.print("[bold][purple]Permifrost[/purple] completed successfully[bold]\n")
 
 
 def run(args):

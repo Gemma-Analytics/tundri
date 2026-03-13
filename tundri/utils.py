@@ -2,21 +2,15 @@ import logging
 import os
 import subprocess
 from pathlib import Path
-from typing import Dict, List, T, Type
+from typing import Dict, List, Type, TypeVar
 
 from dotenv import dotenv_values, load_dotenv
 from rich.console import Console
-from rich.logging import RichHandler
 from snowflake.connector import connect
 from snowflake.connector.cursor import SnowflakeCursor
 
 from tundri.constants import INSPECTOR_ROLE, STRING_CASING_CONVERSION_MAP
 
-logging.basicConfig(
-    level="WARN", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
-)
-log = logging.getLogger(__name__)
-log.setLevel("INFO")
 console = Console()
 
 # Suppress urllib3 connection warnings from Snowflake connector
@@ -24,6 +18,8 @@ logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
 logging.getLogger("snowflake.connector.vendored.urllib3.connectionpool").setLevel(
     logging.ERROR
 )
+
+T = TypeVar("T")
 
 
 class ConfigurationError(Exception):
@@ -41,7 +37,9 @@ def load_env_var(path_to_env: str):
     :param path_to_env: Path to .env file
     :return: --
     """
-    console.log("[bold][purple]Loading environment variables [/purple] started[/bold]")
+    console.print(
+        "[bold][purple]Loading environment variables [/purple] started[/bold]"
+    )
     path_to_dotenv = (
         Path(path_to_env)
         .resolve()  # Converts relative to absolute path
@@ -49,31 +47,31 @@ def load_env_var(path_to_env: str):
     )
     path_to_dotenv = path_to_dotenv / ".env"
 
-    console.log(f"Checking for [italic]{str(path_to_dotenv)}[/italic]")
+    console.print(f"Checking for [italic]{str(path_to_dotenv)}[/italic]")
     if path_to_dotenv.is_file():
-        console.log("Found dotenv file in directory; parsing")
+        console.print("Found dotenv file in directory; parsing")
         env_var = dotenv_values(
             path_to_dotenv
         )  # Dump the contents of .env in a variable
         if not env_var:
-            console.log("Dotenv file is empty, nothing to parse")
-            console.log("Using system's environment variables instead")
+            console.print("Dotenv file is empty, nothing to parse")
+            console.print("Using system's environment variables instead")
         else:
-            console.log("Loading the following environment variables from dotenv:")
+            console.print("Loading the following environment variables from dotenv:")
             for key, value in env_var.items():
-                console.log(f"{key}={value}")
-            console.log(
+                console.print(f"{key}={value}")
+            console.print(
                 "\nThe following environment variables already exist on the system "
                 + "and will be overwritten with the contents of the dotenv file:"
             )
             for key, value in env_var.items():
                 this_value = os.environ.get(key)
                 if this_value is not None:
-                    console.log(f"{key}={this_value}")
+                    console.print(f"{key}={this_value}")
             load_dotenv(path_to_dotenv, override=True)
     else:
-        console.log(f"Could not find dotenv file under {str(path_to_dotenv)}")
-        console.log("Using system's environment variables instead")
+        console.print(f"Could not find dotenv file under {str(path_to_dotenv)}")
+        console.print("Using system's environment variables instead")
 
 
 def get_configs() -> Dict[str, str]:
@@ -196,20 +194,20 @@ def run_command(command):
         if output == "" and process.poll() is not None:
             break
         if output:
-            console.log(output.strip())
+            console.print(output.strip())
 
     # Check for errors
     output, errs = process.communicate()
     if process.returncode != 0:
-        console.log(f"Error: {errs.strip()}")
+        console.print(f"Error: {errs.strip()}")
         raise subprocess.CalledProcessError(process.returncode, command, errs)
     return output, errs
 
 
 def log_dry_run_info():
-    console.log(20 * "-")
-    console.log("[bold]Executing in [yellow]dry run mode[/yellow][/bold]")
-    console.log(20 * "-")
+    console.print(20 * "-")
+    console.print("[bold]Executing in [yellow]dry run mode[/yellow][/bold]")
+    console.print(20 * "-")
 
 
 def get_existing_user(cursor: SnowflakeCursor) -> List[str]:

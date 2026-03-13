@@ -1,9 +1,7 @@
-import logging
 import os
 from typing import Dict, FrozenSet, List
 
 from rich.console import Console
-from rich.logging import RichHandler
 from rich.prompt import Prompt
 from yaml import Loader, load
 
@@ -56,11 +54,6 @@ params_to_unset_if_absent = {
 }
 
 
-logging.basicConfig(
-    level="WARN", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
-)
-log = logging.getLogger(__name__)
-log.setLevel("INFO")
 console = Console()
 
 # Compatible with GitHub, GitLab and Bitbucket
@@ -106,7 +99,7 @@ def build_statements_list(
 def print_ddl_statements(statements: Dict) -> None:
     """Print DDL statements to be executed."""
     if not statements:
-        console.log(
+        console.print(
             "No statements to execute"
             " (the state of Snowflake objects matches the Permifrost spec)\n"
         )
@@ -114,8 +107,8 @@ def print_ddl_statements(statements: Dict) -> None:
     for s in statements:
         if s.startswith("USE ROLE"):
             continue
-        console.log(f"[italic]- {s}[/italic]")
-    console.log()
+        console.print(f"[italic]- {s}[/italic]")
+    console.print()
 
 
 def execute_ddl(statements: List) -> None:
@@ -125,13 +118,13 @@ def execute_ddl(statements: List) -> None:
         statements: list with drop, create and alter statements in sequence for all
                     object types
     """
-    console.log("\n[bold]Executing DDL statements[/bold]:")
+    console.print("\n[bold]Executing DDL statements[/bold]:")
     with get_snowflake_cursor() as cursor:
         for s in statements:
             cursor.execute(s)
             if s.startswith("USE ROLE"):
                 continue
-            console.log(f"[green]\u2713[/green] [italic]{s}[/italic]")
+            console.print(f"[green]\u2713[/green] [italic]{s}[/italic]")
 
 
 def ignore_system_defined_roles(
@@ -187,7 +180,7 @@ def resolve_objects(
 
     # Infer type from arguments
     object_type = list(existing_objects)[0].type
-    console.log(f"Resolving {object_type} objects")
+    console.print(f"Resolving {object_type} objects")
 
     role = OBJECT_ROLE_MAP[object_type]
 
@@ -316,20 +309,20 @@ def drop_create_objects(
             ought_objects,
         )
 
-    console.log("\n[bold]DDL statements to be executed[/bold]:")
+    console.print("\n[bold]DDL statements to be executed[/bold]:")
     ddl_statements_seq = build_statements_list(all_ddl_statements)
     print_ddl_statements(ddl_statements_seq)
     drop_statements = [s for s in ddl_statements_seq if s.startswith("DROP")]
 
     if IS_CI_RUN:
-        console.log(
+        console.print(
             "[bold][yellow]CI run detected[/bold][/yellow]:"
             " Skipping manual confirmations"
         )
 
     if not is_dry_run and not IS_CI_RUN:
         configs = get_configs()
-        console.log(
+        console.print(
             f"\n[bold][blue]INFO[/bold][/blue]:"
             f" Executing for Snowflake account: {configs['account']}"
         )
@@ -338,12 +331,12 @@ def drop_create_objects(
             " to proceed or any other key to abort"
         )
         if user_input.lower() != configs["account"].lower():
-            console.log()
-            console.log("Exited without executing any statements")
+            console.print()
+            console.print("Exited without executing any statements")
             return False
 
     if not is_dry_run and not IS_CI_RUN and drop_statements:
-        console.log(
+        console.print(
             f"\n[bold][red]WARNING[/bold][/red]: DROP statements to execute:"
             f" {drop_statements}"
         )
@@ -351,8 +344,8 @@ def drop_create_objects(
             "\n\t>>> Type [bold]drop[/bold] to proceed or any other key to abort"
         )
         if user_input.lower() != "drop":
-            console.log()
-            console.log("Exited without executing any statements")
+            console.print()
+            console.print("Exited without executing any statements")
             return False
 
     if not is_dry_run:
