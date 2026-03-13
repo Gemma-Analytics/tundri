@@ -31,14 +31,16 @@ jobs:
         env:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          BASE_VERSION=$(python -c "
-          import re
-          text = open('pyproject.toml').read()
-          print(re.search(r'version = \"([^\"]+)\"', text).group(1))
-          ")
-          DEV_VERSION="${BASE_VERSION}.dev${PR_NUMBER}"
-          sed -i "s/version = \"${BASE_VERSION}\"/version = \"${DEV_VERSION}\"/" pyproject.toml
-          echo "DEV_VERSION=${DEV_VERSION}" >> "$GITHUB_ENV"
+          python -c "
+          import re, pathlib, os
+          content = pathlib.Path('pyproject.toml').read_text()
+          base = re.search(r'version = \"([^\"]+)\"', content).group(1)
+          dev = f'{base}.dev{os.environ[\"PR_NUMBER\"]}'
+          pathlib.Path('pyproject.toml').write_text(
+              content.replace(f'version = \"{base}\"', f'version = \"{dev}\"', 1)
+          )
+          print(f'DEV_VERSION={dev}')
+          " >> "$GITHUB_ENV"
 
       - name: Build package
         run: python -m build
