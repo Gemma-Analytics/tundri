@@ -10,7 +10,7 @@ console = Console()
 
 
 def drop_create(args):
-    console.print("[bold][purple]Drop/create Snowflake objects[/purple] started[/bold]")
+    console.print("[bold][purple]Manage Snowflake objects[/purple] started[/bold]")
     if args.dry:
         log_dry_run_info()
     is_success = drop_create_objects(
@@ -18,7 +18,7 @@ def drop_create(args):
     )
     if is_success:
         console.print(
-            "[bold][purple]\nDrop/create Snowflake objects[/purple]"
+            "[bold][purple]\nManage Snowflake objects[/purple]"
             " completed successfully[/bold]\n"
         )
     else:
