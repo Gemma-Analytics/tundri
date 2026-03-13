@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Tundri is a Python CLI tool that manages Snowflake database objects and permissions declaratively. It reads Permifrost YAML specification files, compares the desired state with the actual Snowflake account state, and generates/executes DDL statements (CREATE/DROP/ALTER) for objects. After object management, it runs Permifrost to handle permission grants.
 
+Gemma's fork of Permifrost is primarily used via [Tundri](https://github.com/Gemma-Analytics/tundri/tree/main/tundri) — a custom wrapper tool that handles the CREATE/DROP/ALTER DDL operations on Snowflake objects before delegating permission grants to Permifrost.
+
 ## Development Commands
 
 ```bash
