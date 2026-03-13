@@ -1,9 +1,7 @@
-import logging
 import os
 from typing import Dict, FrozenSet, List
 
 from rich.console import Console
-from rich.logging import RichHandler
 from rich.prompt import Prompt
 from yaml import Loader, load
 
@@ -43,6 +41,16 @@ params_to_unset_if_absent = {
     "user": [
         "rsa_public_key",
         "rsa_public_key_2",
+        "default_warehouse",
+        "default_namespace",
+        "comment",
+        "email",
+        "first_name",
+        "last_name",
+        "display_name",
+        "login_name",
+        "network_policy",
+        "disabled",
     ],
     "warehouse": [
         "comment",
@@ -56,11 +64,6 @@ params_to_unset_if_absent = {
 }
 
 
-logging.basicConfig(
-    level="WARN", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
-)
-log = logging.getLogger(__name__)
-log.setLevel("INFO")
 console = Console()
 
 # Compatible with GitHub, GitLab and Bitbucket
@@ -85,8 +88,8 @@ def build_statements_list(
     ["DROP USER ...", "DROP USER ...", "CREATE USER ..., "ALTER USER ..."]
 
     Args:
-        statements: dict with the list of statements of each type (e.g. create, drop).
-                    Assumes statements come as pairs: "USE ROLE...; CREATE/DROP ..."
+        statements: dict with the list of statements of each type (e.g. create, drop)
+                    it assumes pairs like "USE ROLE...; CREATE/DROP ..."
         object_types: list of object types to process, defaults to OBJECT_TYPES constant
 
     Returns:
@@ -106,7 +109,7 @@ def build_statements_list(
 def print_ddl_statements(statements: Dict) -> None:
     """Print DDL statements to be executed."""
     if not statements:
-        console.log(
+        console.print(
             "No statements to execute"
             " (the state of Snowflake objects matches the Permifrost spec)\n"
         )
@@ -114,8 +117,8 @@ def print_ddl_statements(statements: Dict) -> None:
     for s in statements:
         if s.startswith("USE ROLE"):
             continue
-        console.log(f"[italic]- {s}[/italic]")
-    console.log()
+        console.print(f"[italic]- {s}[/italic]")
+    console.print()
 
 
 def execute_ddl(statements: List) -> None:
@@ -125,19 +128,19 @@ def execute_ddl(statements: List) -> None:
         statements: list with drop, create and alter statements in sequence for all
                     object types
     """
-    console.log("\n[bold]Executing DDL statements[/bold]:")
+    console.print("\n[bold]Executing DDL statements[/bold]:")
     with get_snowflake_cursor() as cursor:
         for s in statements:
             cursor.execute(s)
             if s.startswith("USE ROLE"):
                 continue
-            console.log(f"[green]\u2713[/green] [italic]{s}[/italic]")
+            console.print(f"[green]\u2713[/green] [italic]{s}[/italic]")
 
 
 def ignore_system_defined_roles(
     objects: FrozenSet[SnowflakeObject],
 ) -> FrozenSet[SnowflakeObject]:
-    """Ignore system-defined roles to avoid create/drop errors."""
+    """Ignore system-defined roles to avoid errors when trying to create or drop them."""  # noqa: E501
     return frozenset(
         [
             obj
@@ -176,8 +179,8 @@ def resolve_objects(
         ought_objects: Set of Snowflake objects that are expected to exist
 
     Returns:
-        ddl_statements: dict with drop, create and alter keys with lists of
-                        DDL statements to be executed for the given object type
+        ddl_statements: dict with drop, create and alter keys with lists of DDL
+                        statements to be executed for the given object type
     """
     ddl_statements = {
         "drop": [],
@@ -187,7 +190,7 @@ def resolve_objects(
 
     # Infer type from arguments
     object_type = list(existing_objects)[0].type
-    console.log(f"Resolving {object_type} objects")
+    console.print(f"Resolving {object_type} objects")
 
     role = OBJECT_ROLE_MAP[object_type]
 
@@ -202,10 +205,11 @@ def resolve_objects(
     objects_to_create = ignore_system_defined_roles(objects_to_create)
     objects_to_drop = ignore_system_defined_roles(objects_to_drop)
     if object_type == "user":
-        # Since we skip users with admin privileges during object inspection,
-        # tundri won't know if those users already exist and will try to create them
-        # again. Adding IF NOT EXIST to the CREATE command would only work partially
-        # because tundri still would issue prompts for the affected users.
+        # Since we skip users with admin privileges during inspection,
+        # tundri won't know whether those users exist and will try to create them
+        # even if they already exist. Adding a IF NOT EXIST flag to the CREATE command
+        # will only work partially, because tundri still would issue prompts for the
+        # affected users
         objects_to_create = ignore_existing_users(objects_to_create)
 
     # Prepare CREATE/DROP statements
@@ -253,9 +257,9 @@ def resolve_objects(
         # Params to SET: desired state differs from current state
         params_to_set = dict(ought_params_set.difference(existing_params_set))
 
-        # Params to UNSET: in Snowflake with a non-empty value but removed from spec.
-        # Snowflake represents cleared/default values as 'null' (treat as empty —
-        # no need to UNSET a param already at its default).
+        # Params to UNSET: exist in Snowflake with a non-empty value but removed from spec.  # noqa: E501
+        # Snowflake represents cleared/default values as the string 'null', so that is also  # noqa: E501
+        # treated as empty (no need to UNSET a param that is already at its default).
         params_to_unset = {
             key
             for key in params_to_unset_if_absent.get(object_type, [])
@@ -295,8 +299,8 @@ def drop_create_objects(
     permifrost_spec_path: str, is_dry_run: bool, users_to_skip: List[str]
 ):
     """
-    Drop and create Snowflake objects based on Permifrost specification
-    and inspection of Snowflake metadata.
+    Drop and create Snowflake objects based on Permifrost specification and inspection
+    of Snowflake metadata.
 
     Args:
         permifrost_spec_path: path to the Permifrost specification file
@@ -316,20 +320,20 @@ def drop_create_objects(
             ought_objects,
         )
 
-    console.log("\n[bold]DDL statements to be executed[/bold]:")
+    console.print("\n[bold]DDL statements to be executed[/bold]:")
     ddl_statements_seq = build_statements_list(all_ddl_statements)
     print_ddl_statements(ddl_statements_seq)
     drop_statements = [s for s in ddl_statements_seq if s.startswith("DROP")]
 
     if IS_CI_RUN:
-        console.log(
+        console.print(
             "[bold][yellow]CI run detected[/bold][/yellow]:"
             " Skipping manual confirmations"
         )
 
     if not is_dry_run and not IS_CI_RUN:
         configs = get_configs()
-        console.log(
+        console.print(
             f"\n[bold][blue]INFO[/bold][/blue]:"
             f" Executing for Snowflake account: {configs['account']}"
         )
@@ -338,21 +342,21 @@ def drop_create_objects(
             " to proceed or any other key to abort"
         )
         if user_input.lower() != configs["account"].lower():
-            console.log()
-            console.log("Exited without executing any statements")
+            console.print()
+            console.print("Exited without executing any statements")
             return False
 
     if not is_dry_run and not IS_CI_RUN and drop_statements:
-        console.log(
-            f"\n[bold][red]WARNING[/bold][/red]: DROP statements to execute:"
-            f" {drop_statements}"
+        console.print(
+            f"\n[bold][red]WARNING[/bold][/red]: The following DROP statements"
+            f" are about to be executed: {drop_statements}"
         )
         user_input = Prompt.ask(
             "\n\t>>> Type [bold]drop[/bold] to proceed or any other key to abort"
         )
         if user_input.lower() != "drop":
-            console.log()
-            console.log("Exited without executing any statements")
+            console.print()
+            console.print("Exited without executing any statements")
             return False
 
     if not is_dry_run:
