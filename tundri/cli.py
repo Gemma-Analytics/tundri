@@ -11,6 +11,8 @@ console = Console()
 
 def drop_create(args):
     console.print("[bold][purple]Manage Snowflake objects[/purple] started[/bold]")
+    if args.dry:
+        log_dry_run_info()
     is_success = drop_create_objects(
         args.permifrost_spec_path, args.dry, args.users_to_skip
     )
@@ -34,6 +36,7 @@ def permifrost(args):
 
     if args.dry:
         cmd.append("--dry")
+        log_dry_run_info()
 
     console.print(f"Running command: \n[italic]{' '.join(cmd)}[/italic]\n")
     run_command(cmd)
@@ -59,9 +62,9 @@ def main():
         Altering skipped users through tundri won't work and needs to be done manually!
     """
 
-    # Drop/create functionality
+    # Manage Snowflake objects
     parser_drop_create = subparsers.add_parser(
-        "drop_create", help="Drop, create and alter Snowflake objects"
+        "drop_create", help="Manage Snowflake objects (create, drop, alter)"
     )
     parser_drop_create.add_argument(
         "-p", "--permifrost_spec_path", "--filepath", required=True
@@ -108,8 +111,6 @@ def main():
     parser_drop_create.set_defaults(func=run)
 
     args = parser.parse_args()
-    if args.dry:
-        log_dry_run_info()
     # Loading .env here, because function needs access to the path to config .yml, as
     # the .env is expected to live in the same directory as the .yml
     load_env_var(args.permifrost_spec_path)

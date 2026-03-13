@@ -19,7 +19,7 @@ uv run tundri run --dry -p examples/permifrost.yml   # Dry run
 uv run tundri run -p examples/permifrost.yml          # Execute
 
 # Subcommands
-uv run tundri drop_create -p spec.yml --dry   # Objects only (skip Permifrost)
+uv run tundri drop_create -p spec.yml --dry   # Manage objects only (skip Permifrost)
 uv run tundri permifrost -p spec.yml          # Permissions only (skip objects)
 
 # Tests
@@ -40,8 +40,8 @@ uv run pre-commit install
 
 | Module | Purpose |
 |--------|---------|
-| `cli.py` | Click CLI entry point with `run`, `drop_create`, `permifrost` subcommands |
-| `core.py` | Main logic: inspect, compare, generate DDL, execute |
+| `cli.py` | Argparse CLI entry point with `run`, `drop_create`, `permifrost` subcommands |
+| `core.py` | Main logic: inspect, compare, generate DDL (CREATE/DROP/ALTER SET/UNSET), execute |
 | `parser.py` | Parse Permifrost YAML specs into `SnowflakeObject` instances |
 | `inspector.py` | Query Snowflake metadata via `SHOW` and `DESCRIBE` commands |
 | `objects.py` | Frozen dataclasses for Snowflake objects (Warehouse, Database, Role, User, Schema) |
@@ -52,8 +52,8 @@ uv run pre-commit install
 
 1. Parse Permifrost YAML spec into desired object state
 2. Inspect current Snowflake account state
-3. Compare: generate DROP, CREATE, ALTER statements
-4. Execute DDL (with confirmation unless `--dry` or CI)
+3. Manage: generate CREATE, DROP, ALTER SET/UNSET statements
+4. Execute statements (with confirmation unless `--dry` or CI)
 5. Run Permifrost for permission grants
 
 ### Snowflake Role Model
