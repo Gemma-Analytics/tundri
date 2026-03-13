@@ -99,7 +99,7 @@ def inspect_users(users_to_skip: List[str]) -> FrozenSet[User]:
             except ProgrammingError as e:
                 if "insufficient privileges" in e.msg.lower() and user in users_to_skip:
                     console.print(
-                        f"[yellow]Warning:[/yellow] Skipping metadata retrieval"
+                        f"[blue]Info:[/blue] Skipping metadata retrieval"
                         f" for user {user}: Permifrost user doesn't have DESCRIBE"
                         " privileges on this object"
                     )
