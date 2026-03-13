@@ -4,17 +4,16 @@ from typing import FrozenSet, List
 
 from rich.console import Console
 from rich.logging import RichHandler
+from snowflake.connector.errors import ProgrammingError
 
-from tundri.constants import OBJECT_TYPES, OBJECT_TYPE_MAP, INSPECTOR_ROLE
-from tundri.objects import SnowflakeObject, Schema, User
+from tundri.constants import INSPECTOR_ROLE, OBJECT_TYPE_MAP, OBJECT_TYPES
+from tundri.objects import Schema, SnowflakeObject, User
 from tundri.utils import (
-    plural,
-    get_snowflake_cursor,
     format_metadata_value,
     get_existing_user,
+    get_snowflake_cursor,
+    plural,
 )
-
-from snowflake.connector.errors import ProgrammingError
 
 # Column names of SHOW statement are different than parameter names in DDL statements
 parameter_name_map = {
@@ -39,7 +38,8 @@ def inspect_schemas() -> FrozenSet[Schema]:
     Returns:
         inspected_objects: set of instances of `SnowflakeObject` subclasses
     """
-    # Keys are databases and values are list of schemas e.g. {'ANALYTICS': ['REPORTING']}
+    # Keys are databases and values are list of schemas
+    # e.g. {'ANALYTICS': ['REPORTING']}
     existing_schemas = {}
     with get_snowflake_cursor() as cursor:
         cursor.execute(f"USE ROLE {INSPECTOR_ROLE}")
@@ -91,8 +91,8 @@ def inspect_users(users_to_skip: List[str]) -> FrozenSet[User]:
                 cursor.execute(f"USE ROLE {INSPECTOR_ROLE}")
                 cursor.execute(f"DESCRIBE USER {user}")
 
-                # DESCRIBE returns one row per user attribute, while SHOW returns one column
-                # per user attribute. Pivot the result of DESCRIBE so it works with the
+                # DESCRIBE returns one row per user attribute, while SHOW returns one
+                # column per attribute. Pivot the result of DESCRIBE so it works with
                 # `format_metadata_value()` function
                 attributes = {
                     row[0]: row[1] for row in cursor
@@ -137,7 +137,8 @@ def inspect_object_type(
         cursor.execute(f"SHOW {plural(object_type)}")
         desc = cursor.description
         column_names = [
-            parameter_name_map.get(object_type, dict()).get(col[0], col[0]) for col in desc
+            parameter_name_map.get(object_type, dict()).get(col[0], col[0])
+            for col in desc
         ]
         formatted_rows = [
             tuple(

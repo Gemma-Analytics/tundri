@@ -1,14 +1,14 @@
 import pytest
-from yaml import load, Loader
+from yaml import Loader, load
 
-from tundri.parser import parse_object_type
 from tundri.objects import ConfigurationValueError
+from tundri.parser import parse_object_type
 
 
 def test_user_basic_attributes():
     """Asserts that basic user attributes are correctly parsed from the spec"""
     spec_path = "tests/data/correct_required_params_spec.yml"
-    permifrost_spec = load(open(spec_path, "r"), Loader=Loader)
+    permifrost_spec = load(open(spec_path), Loader=Loader)
 
     users = parse_object_type(permifrost_spec, "user")
 
@@ -20,36 +20,32 @@ def test_user_basic_attributes():
     assert user.params["default_role"] == "userrole_bob"
     assert user.params["default_warehouse"] == "develop"
     assert "can_login" in permifrost_spec["users"][0]["bob"]
-    assert permifrost_spec["users"][0]["bob"]["can_login"] == True
+    assert permifrost_spec["users"][0]["bob"]["can_login"]
     assert "member_of" in permifrost_spec["users"][0]["bob"]
     assert "userrole_bob" in permifrost_spec["users"][0]["bob"]["member_of"]
 
 
 def test_required_params_user():
-    """Asserts that parser object initialization checks for required parameters correctly for users"""
+    """Parser object initialization checks required parameters for users."""
     correct_user_spec_path = "tests/data/correct_required_params_spec.yml"
-    correct_permifrost_spec = load(open(correct_user_spec_path, "r"), Loader=Loader)
+    correct_permifrost_spec = load(open(correct_user_spec_path), Loader=Loader)
     parse_object_type(correct_permifrost_spec, "user")
 
     incorrect_user_spec_path = "tests/data/incorrect_required_params_spec.yml"
-    incorrect_permifrost_spec = load(open(incorrect_user_spec_path, "r"), Loader=Loader)
+    incorrect_permifrost_spec = load(open(incorrect_user_spec_path), Loader=Loader)
     with pytest.raises(ConfigurationValueError) as exc:
         parse_object_type(incorrect_permifrost_spec, "user")
     assert "missing: ['default_role']" in str(exc.value)
 
 
 def test_required_params_warehouse():
-    """Asserts that parser object initialization checks for required parameters correctly for warehouses"""
+    """Parser object initialization checks required parameters for warehouses."""
     correct_warehouse_spec_path = "tests/data/correct_required_params_spec.yml"
-    correct_permifrost_spec = load(
-        open(correct_warehouse_spec_path, "r"), Loader=Loader
-    )
+    correct_permifrost_spec = load(open(correct_warehouse_spec_path), Loader=Loader)
     parse_object_type(correct_permifrost_spec, "warehouse")
 
     incorrect_warehouse_spec_path = "tests/data/incorrect_required_params_spec.yml"
-    incorrect_permifrost_spec = load(
-        open(incorrect_warehouse_spec_path, "r"), Loader=Loader
-    )
+    incorrect_permifrost_spec = load(open(incorrect_warehouse_spec_path), Loader=Loader)
     with pytest.raises(ConfigurationValueError) as exc:
         parse_object_type(incorrect_permifrost_spec, "warehouse")
     assert "missing: ['warehouse_size', 'auto_suspend']" in str(exc.value)
@@ -58,7 +54,7 @@ def test_required_params_warehouse():
 def test_meta_params_case_conversion():
     """Asserts that meta parameters are converted to lowercase when parsed"""
     uppercase_spec_path = "tests/data/uppercase_meta_params_spec.yml"
-    permifrost_spec = load(open(uppercase_spec_path, "r"), Loader=Loader)
+    permifrost_spec = load(open(uppercase_spec_path), Loader=Loader)
 
     # Parse the user with uppercase meta parameters
     users = parse_object_type(permifrost_spec, "user")
@@ -70,7 +66,7 @@ def test_meta_params_case_conversion():
     assert user.params["default_role"] == "userrole_test"
     assert user.params["default_warehouse"] == "test_warehouse"
     assert user.params["password"] == "1passwordvault"
-    assert user.params["must_change_password"] == True
+    assert user.params["must_change_password"]
     assert (
         user.params["rsa_public_key"] == "-----BEGIN PUBLIC KEY-----\n"
         "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAorPOOOdYipGVCUWbV1Fj\n"

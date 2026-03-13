@@ -43,7 +43,8 @@ def test_user_unset_param(test_credentials, test_values, users_to_skip):
             "drop": [],
             "create": [],
             "alter": [
-                f"USE ROLE {test_role}; ALTER USER {test_user} SET comment='{test_comment}'"
+                f"USE ROLE {test_role};"
+                f" ALTER USER {test_user} SET comment='{test_comment}'"
             ],
         },
     }
@@ -62,9 +63,7 @@ def test_user_unset_param(test_credentials, test_values, users_to_skip):
         "user": {
             "drop": [],
             "create": [],
-            "alter": [
-                f"USE ROLE {test_role}; ALTER USER {test_user} UNSET comment"
-            ],
+            "alter": [f"USE ROLE {test_role}; ALTER USER {test_user} UNSET comment"],
         },
     }
     execute_ddl(build_statements_list(unset_statements, ["user"]))

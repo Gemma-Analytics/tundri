@@ -1,10 +1,11 @@
-from yaml import load, Loader
 from pprint import pprint
 from typing import FrozenSet
 
-from tundri.constants import OBJECT_TYPES, OBJECT_TYPE_MAP
-from tundri.objects import SnowflakeObject, Schema, ConfigurationValueError
-from tundri.utils import plural, format_metadata_value
+from yaml import Loader, load
+
+from tundri.constants import OBJECT_TYPE_MAP, OBJECT_TYPES
+from tundri.objects import ConfigurationValueError, Schema, SnowflakeObject
+from tundri.utils import format_metadata_value, plural
 
 PERMIFROST_YAML_FILEPATH = "examples/permifrost.yml"
 
@@ -22,7 +23,8 @@ def parse_schemas(permifrost_spec: dict) -> FrozenSet[Schema]:
     Returns:
         parsed_objects: set of instances of `Schema` class
     """
-    # Keys are databases and values are list of schemas e.g. {'ANALYTICS': ['REPORTING']}
+    # Keys are databases and values are list of schemas
+    # e.g. {'ANALYTICS': ['REPORTING']}
     ought_schemas = {}
     for role in permifrost_spec["roles"]:
         role_name, permi_defs = list(role.items())[0]
@@ -39,14 +41,14 @@ def parse_schemas(permifrost_spec: dict) -> FrozenSet[Schema]:
                 if not schema_name == "*":
                     if not ought_schemas.get(database):
                         ought_schemas[database] = []
-                    if not schema_name in ought_schemas[database]:
+                    if schema_name not in ought_schemas[database]:
                         ought_schemas[database].append(schema_name)
             for schema in permi_defs["privileges"]["schemas"].get("write", []):
                 database, schema_name = schema.upper().split(".")
                 if not schema_name == "*":
                     if not ought_schemas.get(database):
                         ought_schemas[database] = []
-                    if not schema_name in ought_schemas[database]:
+                    if schema_name not in ought_schemas[database]:
                         ought_schemas[database].append(schema_name)
 
     ought_schema_names = []
@@ -74,7 +76,8 @@ def parse_object_type(
 
     parsed_objects = []
     for object in permifrost_spec.get(plural(object_type), []):
-        # Each object is a dict with a single key (its name) and a dict containing the spec as value
+        # Each object is a dict with a single key (its name)
+        # and a dict containing the spec as value
         object_name = list(object.keys())[0]
         object_spec = object[object_name]
         params = dict()
@@ -87,7 +90,9 @@ def parse_object_type(
         )
         if not new_parsed_object.check_required_params():
             raise ConfigurationValueError(
-                f"Required parameters for object '{object_name}' of type '{object_type}' missing: {new_parsed_object.get_missing_required_params()}"
+                f"Required parameters for object '{object_name}'"
+                f" of type '{object_type}' missing:"
+                f" {new_parsed_object.get_missing_required_params()}"
             )
         parsed_objects.append(new_parsed_object)
 
@@ -95,7 +100,7 @@ def parse_object_type(
 
 
 def run():
-    permifrost_spec = load(open(PERMIFROST_YAML_FILEPATH, "r"), Loader=Loader)
+    permifrost_spec = load(open(PERMIFROST_YAML_FILEPATH), Loader=Loader)
 
     parsed_objects = {plural(object_type): None for object_type in OBJECT_TYPES}
 

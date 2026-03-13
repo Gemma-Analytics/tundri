@@ -8,12 +8,13 @@ class SnowflakeObject:
 
     It has customized behavior for equality checks, set operations and sort. This is
     done to allow for simpler comparisons between objects that exist vs. ought to exist.
-    Equality checks ignore the paramaters, which need to be checked using more complex logic.
+    Equality checks ignore the parameters, which need more complex logic to check.
 
     Attributes:
         type: object type, e.g. `database`, `warehouse`, etc
         name: object name, e.g. `raw` for a database or `load` for a warehouse
-        params: dict with object parameters, e.g. for a user: {'default_warehouse': 'load'}
+        params: dict with object parameters,
+            e.g. for a user: {'default_warehouse': 'load'}
         required_params: tuple with values expected as keys of `params`
     """
 

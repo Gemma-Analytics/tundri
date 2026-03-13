@@ -22,10 +22,10 @@ def test_user_state(snowflake_cursor, test_credentials):
         test_credentials["SNOWFLAKE_WAREHOUSE"].upper(),
     ]
     test_query = """
-    SELECT 
+    SELECT
         CURRENT_ORGANIZATION_NAME() || '-' || CURRENT_ACCOUNT_NAME(),
-        CURRENT_USER(), 
-        CURRENT_DATABASE(), 
+        CURRENT_USER(),
+        CURRENT_DATABASE(),
         CURRENT_WAREHOUSE()
     """
 

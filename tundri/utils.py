@@ -1,18 +1,16 @@
 import logging
 import os
 import subprocess
-from typing import Dict, Type, T, List
 from pathlib import Path
+from typing import Dict, List, T, Type
 
-from dotenv import load_dotenv, dotenv_values
-
+from dotenv import dotenv_values, load_dotenv
 from rich.console import Console
 from rich.logging import RichHandler
 from snowflake.connector import connect
 from snowflake.connector.cursor import SnowflakeCursor
 
-from tundri.constants import STRING_CASING_CONVERSION_MAP, INSPECTOR_ROLE
-
+from tundri.constants import INSPECTOR_ROLE, STRING_CASING_CONVERSION_MAP
 
 logging.basicConfig(
     level="WARN", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
@@ -23,7 +21,9 @@ console = Console()
 
 # Suppress urllib3 connection warnings from Snowflake connector
 logging.getLogger("urllib3.connectionpool").setLevel(logging.ERROR)
-logging.getLogger("snowflake.connector.vendored.urllib3.connectionpool").setLevel(logging.ERROR)
+logging.getLogger("snowflake.connector.vendored.urllib3.connectionpool").setLevel(
+    logging.ERROR
+)
 
 
 class ConfigurationError(Exception):
@@ -34,7 +34,7 @@ def load_env_var(path_to_env: str):
     """
     Loads environment variables from a dotenv file.
     Dotenv file has to live in the same directory as the Permifrost specifications file.
-    If an evironment variable with the same name already exists in on the system (e.g., 
+    If an evironment variable with the same name already exists in on the system (e.g.,
     in .bashrc), the existing variable is overwritten with the corresponding value from
     the dotenv file. Filename has to be ".env".
 
@@ -48,11 +48,13 @@ def load_env_var(path_to_env: str):
         .parent  # Drop filename, and only retain dir from path
     )
     path_to_dotenv = path_to_dotenv / ".env"
-    
+
     console.log(f"Checking for [italic]{str(path_to_dotenv)}[/italic]")
     if path_to_dotenv.is_file():
         console.log("Found dotenv file in directory; parsing")
-        env_var = dotenv_values(path_to_dotenv)  # Dump the contents of .env in a variable
+        env_var = dotenv_values(
+            path_to_dotenv
+        )  # Dump the contents of .env in a variable
         if not env_var:
             console.log("Dotenv file is empty, nothing to parse")
             console.log("Using system's environment variables instead")
@@ -61,12 +63,12 @@ def load_env_var(path_to_env: str):
             for key, value in env_var.items():
                 console.log(f"{key}={value}")
             console.log(
-                "\nThe following environment variables already exist on the system " + 
-                "and will be overwritten with the contents of the dotenv file:"
+                "\nThe following environment variables already exist on the system "
+                + "and will be overwritten with the contents of the dotenv file:"
             )
             for key, value in env_var.items():
                 this_value = os.environ.get(key)
-                if this_value != None:
+                if this_value is not None:
                     console.log(f"{key}={this_value}")
             load_dotenv(path_to_dotenv, override=True)
     else:
@@ -75,7 +77,7 @@ def load_env_var(path_to_env: str):
 
 
 def get_configs() -> Dict[str, str]:
-    """Get the configuration from environment variables and validate them before returning"""
+    """Get configuration from environment variables, validating before returning."""
     config = {
         "user": os.getenv("PERMISSION_BOT_USER"),
         "password": os.getenv("PERMISSION_BOT_PASSWORD", ""),
@@ -141,7 +143,8 @@ def format_metadata_value(name: str, value):
     Format metadata values read from the YAML file or Snowflake metadata
 
     Most values are converted to lowercase to simplify comparisons, but other parameters
-    like `rsa_public_key` are treated differently as defined in `STRING_CASING_CONVERSION_MAP`
+    like `rsa_public_key` are treated differently as defined in
+    `STRING_CASING_CONVERSION_MAP`
     """
     if isinstance(value, str):
         str_callable = STRING_CASING_CONVERSION_MAP.get(name, str.lower)
@@ -220,5 +223,5 @@ def get_existing_user(cursor: SnowflakeCursor) -> List[str]:
         List of names from existing Snowflake user
     """
     cursor.execute(f"USE ROLE {INSPECTOR_ROLE}")
-    cursor.execute(f"SHOW USERS")
+    cursor.execute("SHOW USERS")
     return [row[0].lower() for row in cursor]  # List of user names (Strings)

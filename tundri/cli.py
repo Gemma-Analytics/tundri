@@ -6,12 +6,7 @@ from rich.console import Console
 from rich.logging import RichHandler
 
 from tundri.core import drop_create_objects
-from tundri.utils import (
-    run_command,
-    log_dry_run_info,
-    load_env_var
-)
-
+from tundri.utils import load_env_var, log_dry_run_info, run_command
 
 logging.basicConfig(
     level="WARN", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
@@ -30,7 +25,8 @@ def drop_create(args):
     )
     if is_success:
         console.log(
-            "[bold][purple]\nDrop/create Snowflake objects[/purple] completed successfully[/bold]\n"
+            "[bold][purple]\nDrop/create Snowflake objects[/purple]"
+            " completed successfully[/bold]\n"
         )
     else:
         sys.exit(1)
@@ -61,23 +57,31 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description="tundri - Drop, create and alter Snowflake objects and set permissions with Permifrost"
+        description=(
+            "tundri - Drop, create and alter Snowflake objects"
+            " and set permissions with Permifrost"
+        )
     )
     subparsers = parser.add_subparsers()
     help_str_users_to_skip = """
-        Users to ignore from drop, create, and alter operations (space-separated list, case-sensitive).
+        Users to ignore from drop, create, and alter operations
+        (space-separated list, case-sensitive).
         Users with admin priviliges can't be inspected by the permifrost user, because
-        of them being higher in the role hierarchy then the default tundri inspector 
+        of them being higher in the role hierarchy then the default tundri inspector
         role. To avoid permission errors, skip those users during object inspection.
-        Altering skipped users through tundri won't work and needs to be done manually! 
+        Altering skipped users through tundri won't work and needs to be done manually!
     """
 
     # Drop/create functionality
-    parser_drop_create = subparsers.add_parser("drop_create", help="Drop, create and alter Snowflake objects")
+    parser_drop_create = subparsers.add_parser(
+        "drop_create", help="Drop, create and alter Snowflake objects"
+    )
     parser_drop_create.add_argument(
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
-    parser_drop_create.add_argument("--dry", action="store_true", help="Run in dry mode")
+    parser_drop_create.add_argument(
+        "--dry", action="store_true", help="Run in dry mode"
+    )
     parser_drop_create.add_argument(
         "--users-to-skip",
         nargs="+",
@@ -92,15 +96,21 @@ def main():
     parser_drop_create.add_argument(
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
-    parser_drop_create.add_argument("--dry", action="store_true", help="Run in dry mode")
+    parser_drop_create.add_argument(
+        "--dry", action="store_true", help="Run in dry mode"
+    )
     parser_drop_create.set_defaults(func=permifrost)
 
     # Run both
-    parser_drop_create = subparsers.add_parser("run", help="Run drop_create and then permifrost")
+    parser_drop_create = subparsers.add_parser(
+        "run", help="Run drop_create and then permifrost"
+    )
     parser_drop_create.add_argument(
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
-    parser_drop_create.add_argument("--dry", action="store_true", help="Run in dry mode")
+    parser_drop_create.add_argument(
+        "--dry", action="store_true", help="Run in dry mode"
+    )
     parser_drop_create.add_argument(
         "--users-to-skip",
         nargs="+",
