@@ -1,27 +1,26 @@
 import logging
 import os
-from typing import FrozenSet, Dict, List
+from typing import Dict, FrozenSet, List
 
 from rich.console import Console
 from rich.logging import RichHandler
 from rich.prompt import Prompt
-from yaml import load, Loader
+from yaml import Loader, load
 
 from tundri.constants import (
-    OBJECT_TYPES,
     OBJECT_ROLE_MAP,
+    OBJECT_TYPES,
     SYSTEM_DEFINED_ROLES,
 )
 from tundri.inspector import inspect_object_type
 from tundri.objects import SnowflakeObject
 from tundri.parser import parse_object_type
 from tundri.utils import (
-    get_configs,
-    get_snowflake_cursor,
     format_params,
+    get_configs,
     get_existing_user,
+    get_snowflake_cursor,
 )
-
 
 all_ddl_statements = {object_type: None for object_type in OBJECT_TYPES}
 
@@ -86,8 +85,8 @@ def build_statements_list(
     ["DROP USER ...", "DROP USER ...", "CREATE USER ..., "ALTER USER ..."]
 
     Args:
-        statements: dict with the list of statements of each type (e.g. create, drop)
-                    it assumes statements come as pairs  like "USE ROLE...; CREATE/DROP ..."
+        statements: dict with the list of statements of each type (e.g. create, drop).
+                    Assumes statements come as pairs: "USE ROLE...; CREATE/DROP ..."
         object_types: list of object types to process, defaults to OBJECT_TYPES constant
 
     Returns:
@@ -108,7 +107,8 @@ def print_ddl_statements(statements: Dict) -> None:
     """Print DDL statements to be executed."""
     if not statements:
         console.log(
-            "No statements to execute (the state of Snowflake objects matches the Permifrost spec)\n"
+            "No statements to execute"
+            " (the state of Snowflake objects matches the Permifrost spec)\n"
         )
         return
     for s in statements:
@@ -137,7 +137,7 @@ def execute_ddl(statements: List) -> None:
 def ignore_system_defined_roles(
     objects: FrozenSet[SnowflakeObject],
 ) -> FrozenSet[SnowflakeObject]:
-    """Ignore system-defined roles to avoid errors when trying to create or drop them."""
+    """Ignore system-defined roles to avoid create/drop errors."""
     return frozenset(
         [
             obj
@@ -176,8 +176,8 @@ def resolve_objects(
         ought_objects: Set of Snowflake objects that are expected to exist
 
     Returns:
-        ddl_statements: dict with drop, create and alter keys with lists of DDL statments
-                        to be executed for the given object type
+        ddl_statements: dict with drop, create and alter keys with lists of
+                        DDL statements to be executed for the given object type
     """
     ddl_statements = {
         "drop": [],
@@ -202,11 +202,10 @@ def resolve_objects(
     objects_to_create = ignore_system_defined_roles(objects_to_create)
     objects_to_drop = ignore_system_defined_roles(objects_to_drop)
     if object_type == "user":
-        # Since we are skipping some users with admin priviliges during object inspection,
-        # tundri won't know whether those users already exist, and will try to create them
-        # even if they already exist. Adding a IF NOT EXIST flag to the CREATE command
-        # will only work partially, because tundri still would issue prompts for the
-        # affected users
+        # Since we skip users with admin privileges during object inspection,
+        # tundri won't know if those users already exist and will try to create them
+        # again. Adding IF NOT EXIST to the CREATE command would only work partially
+        # because tundri still would issue prompts for the affected users.
         objects_to_create = ignore_existing_users(objects_to_create)
 
     # Prepare CREATE/DROP statements
@@ -254,9 +253,9 @@ def resolve_objects(
         # Params to SET: desired state differs from current state
         params_to_set = dict(ought_params_set.difference(existing_params_set))
 
-        # Params to UNSET: exist in Snowflake with a non-empty value but removed from spec.
-        # Snowflake represents cleared/default values as the string 'null', so that is also
-        # treated as empty (no need to UNSET a param that is already at its default).
+        # Params to UNSET: in Snowflake with a non-empty value but removed from spec.
+        # Snowflake represents cleared/default values as 'null' (treat as empty —
+        # no need to UNSET a param already at its default).
         params_to_unset = {
             key
             for key in params_to_unset_if_absent.get(object_type, [])
@@ -296,7 +295,8 @@ def drop_create_objects(
     permifrost_spec_path: str, is_dry_run: bool, users_to_skip: List[str]
 ):
     """
-    Drop and create Snowflake objects based on Permifrost specification and inspection of Snowflake metadata.
+    Drop and create Snowflake objects based on Permifrost specification
+    and inspection of Snowflake metadata.
 
     Args:
         permifrost_spec_path: path to the Permifrost specification file
@@ -306,7 +306,7 @@ def drop_create_objects(
     Returns:
         bool: True if the operation was successful, False otherwise
     """
-    permifrost_spec = load(open(permifrost_spec_path, "r"), Loader=Loader)
+    permifrost_spec = load(open(permifrost_spec_path), Loader=Loader)
 
     for object_type in OBJECT_TYPES:
         existing_objects = inspect_object_type(object_type, users_to_skip)
@@ -323,16 +323,19 @@ def drop_create_objects(
 
     if IS_CI_RUN:
         console.log(
-            "[bold][yellow]CI run detected[/bold][/yellow]: Skipping manual confirmations"
+            "[bold][yellow]CI run detected[/bold][/yellow]:"
+            " Skipping manual confirmations"
         )
 
     if not is_dry_run and not IS_CI_RUN:
         configs = get_configs()
         console.log(
-            f"\n[bold][blue]INFO[/bold][/blue]: Executing for Snowflake account: {configs['account']}"
+            f"\n[bold][blue]INFO[/bold][/blue]:"
+            f" Executing for Snowflake account: {configs['account']}"
         )
         user_input = Prompt.ask(
-            f"\n\t>>> Type [bold]{configs['account']}[/bold] to proceed or any other key to abort"
+            f"\n\t>>> Type [bold]{configs['account']}[/bold]"
+            " to proceed or any other key to abort"
         )
         if user_input.lower() != configs["account"].lower():
             console.log()
@@ -341,7 +344,8 @@ def drop_create_objects(
 
     if not is_dry_run and not IS_CI_RUN and drop_statements:
         console.log(
-            f"\n[bold][red]WARNING[/bold][/red]: The following DROP statements are about to be executed: {(drop_statements)}"
+            f"\n[bold][red]WARNING[/bold][/red]: DROP statements to execute:"
+            f" {drop_statements}"
         )
         user_input = Prompt.ask(
             "\n\t>>> Type [bold]drop[/bold] to proceed or any other key to abort"

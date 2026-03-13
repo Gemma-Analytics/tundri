@@ -45,15 +45,25 @@ Issues = "https://github.com/Gemma-Analytics/tundri/issues"
 
 [dependency-groups]
 dev = [
-    "black>=24.8.0",
     "build>=1.2.2.post1",
+    "pre-commit>=3.5.0",
     "pytest>=8.3.5",
+    "ruff>=0.15.6",
     "twine>=6.1.0",
 ]
 
-[tool.black]
+[tool.ruff]
+target-version = "py38"
 line-length = 88
-target-version = ['py38']
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "W"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["tundri"]
+
+[tool.ruff.format]
+# defaults match black — no custom settings needed
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

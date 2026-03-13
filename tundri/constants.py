@@ -1,13 +1,12 @@
 import os
 
 from tundri.objects import (
-    Warehouse,
     Database,
-    User,
     Role,
     Schema,
+    User,
+    Warehouse,
 )
-
 
 ENV_VAR_OVERRIDE_ROLE = "TUNDRI_DROP_CREATE_ROLE"
 

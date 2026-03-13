@@ -1,5 +1,6 @@
-import pytest
 import os
+
+import pytest
 
 from tundri.utils import get_snowflake_cursor
 

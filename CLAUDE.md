@@ -26,8 +26,12 @@ uv run tundri permifrost -p spec.yml          # Permissions only (skip objects)
 uv run pytest -v                              # All tests
 uv run pytest -v tests/integration_tests/     # Integration tests only
 
-# Format
-uv run black .
+# Lint + Format
+uv run ruff check .    # Lint (add --fix for auto-fix)
+uv run ruff format .   # Format
+
+# Pre-commit hooks (one-time setup)
+uv run pre-commit install
 ```
 
 ## Architecture

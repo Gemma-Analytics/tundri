@@ -1,4 +1,4 @@
-from tundri.utils import plural, format_metadata_value, format_params
+from tundri.utils import format_metadata_value, format_params, plural
 
 
 def test_plural():
@@ -10,10 +10,10 @@ def test_plural():
 
 
 def test_treat_metadata_value():
-    assert format_metadata_value("dummy_key", "true") == True
-    assert format_metadata_value("dummy_key", "false") == False
-    assert format_metadata_value("dummy_key", "TRUE") == True
-    assert format_metadata_value("dummy_key", "FALSE") == False
+    assert format_metadata_value("dummy_key", "true") is True
+    assert format_metadata_value("dummy_key", "false") is False
+    assert format_metadata_value("dummy_key", "TRUE") is True
+    assert format_metadata_value("dummy_key", "FALSE") is False
     assert format_metadata_value("dummy_key", "Something") == "something"
     assert format_metadata_value("rsa_public_key", "CaseSensitve") == "CaseSensitve"
 
