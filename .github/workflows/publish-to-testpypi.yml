@@ -27,6 +27,19 @@ jobs:
           python -m pip install --upgrade pip
           pip install build twine
 
+      - name: Set dev version from PR number
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          BASE_VERSION=$(python -c "
+          import re
+          text = open('pyproject.toml').read()
+          print(re.search(r'version = \"([^\"]+)\"', text).group(1))
+          ")
+          DEV_VERSION="${BASE_VERSION}.dev${PR_NUMBER}"
+          sed -i "s/version = \"${BASE_VERSION}\"/version = \"${DEV_VERSION}\"/" pyproject.toml
+          echo "DEV_VERSION=${DEV_VERSION}" >> "$GITHUB_ENV"
+
       - name: Build package
         run: python -m build
 
@@ -37,14 +50,13 @@ jobs:
         env:
           TWINE_USERNAME: __token__
           TWINE_PASSWORD: ${{ secrets.TEST_PYPI_API_TOKEN }}
-        run: twine upload --repository testpypi dist/*
+        run: twine upload --repository testpypi --skip-existing dist/*
 
       - name: Comment PR with TestPyPI link
         uses: actions/github-script@v6
         with:
           script: |
-            const version = require('fs').readFileSync('pyproject.toml', 'utf8')
-              .match(/version = "([^"]+)"/)[1];
+            const version = process.env.DEV_VERSION;
             const testpypiUrl = `https://test.pypi.org/project/tundri/${version}/`;
             github.rest.issues.createComment({
               issue_number: context.issue.number,
