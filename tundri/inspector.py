@@ -1,9 +1,7 @@
-import logging
 from pprint import pprint
 from typing import FrozenSet, List
 
 from rich.console import Console
-from rich.logging import RichHandler
 from snowflake.connector.errors import ProgrammingError
 
 from tundri.constants import INSPECTOR_ROLE, OBJECT_TYPE_MAP, OBJECT_TYPES
@@ -24,11 +22,6 @@ parameter_name_map = {
 }
 
 
-logging.basicConfig(
-    level="WARN", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
-)
-log = logging.getLogger(__name__)
-log.setLevel("INFO")
 console = Console()
 
 
@@ -38,8 +31,7 @@ def inspect_schemas() -> FrozenSet[Schema]:
     Returns:
         inspected_objects: set of instances of `SnowflakeObject` subclasses
     """
-    # Keys are databases and values are list of schemas
-    # e.g. {'ANALYTICS': ['REPORTING']}
+    # Keys are databases and values are list of schemas e.g. {'ANALYTICS': ['REPORTING']}  # noqa: E501
     existing_schemas = {}
     with get_snowflake_cursor() as cursor:
         cursor.execute(f"USE ROLE {INSPECTOR_ROLE}")
@@ -91,8 +83,8 @@ def inspect_users(users_to_skip: List[str]) -> FrozenSet[User]:
                 cursor.execute(f"USE ROLE {INSPECTOR_ROLE}")
                 cursor.execute(f"DESCRIBE USER {user}")
 
-                # DESCRIBE returns one row per user attribute, while SHOW returns one
-                # column per attribute. Pivot the result of DESCRIBE so it works with
+                # DESCRIBE returns one row per user attribute, while SHOW returns one column  # noqa: E501
+                # per user attribute. Pivot the result of DESCRIBE so it works with the
                 # `format_metadata_value()` function
                 attributes = {
                     row[0]: row[1] for row in cursor
@@ -105,10 +97,10 @@ def inspect_users(users_to_skip: List[str]) -> FrozenSet[User]:
                 data.append(User(name=name, params=formatted_row))
             except ProgrammingError as e:
                 if "insufficient privileges" in e.msg.lower() and user in users_to_skip:
-                    console.log(
-                        "[bold][red]WARNING[/bold][/red]: Skipping metadata retrieval",
-                        f"for user {user}: Permifrost user doesn't have DESCRIBE",
-                        "privileges on this object",
+                    console.print(
+                        f"[yellow]Warning:[/yellow] Skipping metadata retrieval"
+                        f" for user {user}: Permifrost user doesn't have DESCRIBE"
+                        " privileges on this object"
                     )
                 else:
                     raise e
@@ -137,8 +129,7 @@ def inspect_object_type(
         cursor.execute(f"SHOW {plural(object_type)}")
         desc = cursor.description
         column_names = [
-            parameter_name_map.get(object_type, dict()).get(col[0], col[0])
-            for col in desc
+            parameter_name_map.get(object_type, {}).get(col[0], col[0]) for col in desc
         ]
         formatted_rows = [
             tuple(

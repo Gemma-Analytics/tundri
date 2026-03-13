@@ -1,30 +1,23 @@
 import argparse
-import logging
 import sys
 
 from rich.console import Console
-from rich.logging import RichHandler
 
 from tundri.core import drop_create_objects
 from tundri.utils import load_env_var, log_dry_run_info, run_command
 
-logging.basicConfig(
-    level="WARN", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
-)
-log = logging.getLogger(__name__)
-log.setLevel("INFO")
 console = Console()
 
 
 def drop_create(args):
-    console.log("[bold][purple]Drop/create Snowflake objects[/purple] started[/bold]")
+    console.print("[bold][purple]Drop/create Snowflake objects[/purple] started[/bold]")
     if args.dry:
         log_dry_run_info()
     is_success = drop_create_objects(
         args.permifrost_spec_path, args.dry, args.users_to_skip
     )
     if is_success:
-        console.log(
+        console.print(
             "[bold][purple]\nDrop/create Snowflake objects[/purple]"
             " completed successfully[/bold]\n"
         )
@@ -33,7 +26,7 @@ def drop_create(args):
 
 
 def permifrost(args):
-    console.log("[bold][purple]Permifrost[/purple] started[/bold]")
+    console.print("[bold][purple]Permifrost[/purple] started[/bold]")
     cmd = [
         "permifrost",
         "run",
@@ -45,9 +38,9 @@ def permifrost(args):
         cmd.append("--dry")
         log_dry_run_info()
 
-    console.log(f"Running command: \n[italic]{' '.join(cmd)}[/italic]\n")
+    console.print(f"Running command: \n[italic]{' '.join(cmd)}[/italic]\n")
     run_command(cmd)
-    console.log("[bold][purple]Permifrost[/purple] completed successfully[bold]\n")
+    console.print("[bold][purple]Permifrost[/purple] completed successfully[/bold]\n")
 
 
 def run(args):
@@ -57,18 +50,15 @@ def run(args):
 
 def main():
     parser = argparse.ArgumentParser(
-        description=(
-            "tundri - Drop, create and alter Snowflake objects"
-            " and set permissions with Permifrost"
-        )
+        description="tundri - Manage Snowflake objects and set permissions"
     )
     subparsers = parser.add_subparsers()
     help_str_users_to_skip = """
         Users to ignore from drop, create, and alter operations
         (space-separated list, case-sensitive).
-        Users with admin priviliges can't be inspected by the permifrost user, because
-        of them being higher in the role hierarchy then the default tundri inspector
-        role. To avoid permission errors, skip those users during object inspection.
+        Users with admin privileges can't be inspected by the permifrost user,
+        because of them being higher in the role hierarchy than the default tundri
+        inspector role. To avoid permission errors, skip those users during inspection.
         Altering skipped users through tundri won't work and needs to be done manually!
     """
 
