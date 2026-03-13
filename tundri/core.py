@@ -113,7 +113,7 @@ def build_summary_line(statements: List) -> str | None:
     ALTER statements are sub-classified as SET or UNSET by checking for ' UNSET '.
 
     Returns:
-        Summary string like '3 CREATE, 2 ALTER (1 SET, 1 UNSET), 0 DROP', or None if empty.
+        Summary: e.g. '3 CREATE, 2 ALTER (1 SET, 1 UNSET), 0 DROP', or None if empty.
     """
     if not statements:
         return None
@@ -138,7 +138,9 @@ def build_summary_line(statements: List) -> str | None:
 
     alter_total = alter_set_count + alter_unset_count
     if alter_total > 0:
-        alter_str = f"{alter_total} ALTER ({alter_set_count} SET, {alter_unset_count} UNSET)"
+        alter_str = (
+            f"{alter_total} ALTER ({alter_set_count} SET, {alter_unset_count} UNSET)"
+        )
     else:
         alter_str = "0 ALTER"
 
@@ -247,7 +249,7 @@ def resolve_objects(
 
     role = OBJECT_ROLE_MAP[object_type]
 
-    # Check which objects to drop/create/keep
+    # Determine which objects to create, drop, or keep
     objects_to_drop = existing_objects.difference(ought_objects)
     if object_type == "schema":  # Schemas should not be dropped
         objects_to_drop = frozenset()
@@ -311,7 +313,7 @@ def resolve_objects(
         params_to_set = dict(ought_params_set.difference(existing_params_set))
 
         # Params to UNSET: exist in Snowflake with a non-empty value but removed from spec.  # noqa: E501
-        # Snowflake represents cleared/default values as the string 'null', so that is also  # noqa: E501
+        # Snowflake represents cleared/default values as 'null', so that is also
         # treated as empty (no need to UNSET a param that is already at its default).
         params_to_unset = {
             key
@@ -348,17 +350,17 @@ def resolve_objects(
     return ddl_statements
 
 
-def drop_create_objects(
+def manage_objects(
     permifrost_spec_path: str, is_dry_run: bool, users_to_skip: List[str]
 ):
     """
-    Drop and create Snowflake objects based on Permifrost specification and inspection
+    Manage Snowflake objects based on Permifrost specification and inspection
     of Snowflake metadata.
 
     Args:
         permifrost_spec_path: path to the Permifrost specification file
         is_dry_run: flag to run the operation in dry-run mode
-        users_to_skip: list of users to skip during rom drop, create, alter operations
+        users_to_skip: list of users to skip during object management
 
     Returns:
         bool: True if the operation was successful, False otherwise
