@@ -54,6 +54,10 @@ def main():
     parser = argparse.ArgumentParser(
         description="tundri - Manage Snowflake objects and set permissions"
     )
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
+
     subparsers = parser.add_subparsers()
     help_str_users_to_skip = """
         Users to ignore from object management operations
@@ -109,8 +113,6 @@ def main():
     parser_run.set_defaults(func=run)
 
     args = parser.parse_args()
-    # Loading .env here, because function needs access to the path to config .yml, as
-    # the .env is expected to live in the same directory as the .yml
     load_env_var(args.permifrost_spec_path)
     args.func(args)
 

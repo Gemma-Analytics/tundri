@@ -41,7 +41,7 @@ uv run pre-commit install
 
 | Module | Purpose |
 |--------|---------|
-| `cli.py` | Argparse CLI entry point with `run`, `drop_create`, `permifrost` subcommands |
+| `cli.py` | Argparse CLI entry point with `run`, `manage`, `permifrost` subcommands (`drop_create` is a deprecated alias for `manage`) |
 | `core.py` | Main logic: inspect, compare, generate DDL (CREATE/DROP/ALTER SET/UNSET), execute |
 | `parser.py` | Parse Permifrost YAML specs into `SnowflakeObject` instances |
 | `inspector.py` | Query Snowflake metadata via `SHOW` and `DESCRIBE` commands |
