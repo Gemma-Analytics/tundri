@@ -3,17 +3,15 @@ import sys
 
 from rich.console import Console
 
-from tundri.core import drop_create_objects
+from tundri.core import manage_objects
 from tundri.utils import load_env_var, log_dry_run_info, run_command
 
 console = Console()
 
 
-def drop_create(args):
+def manage(args):
     console.print("[bold][purple]Manage Snowflake objects[/purple] started[/bold]")
-    is_success = drop_create_objects(
-        args.permifrost_spec_path, args.dry, args.users_to_skip
-    )
+    is_success = manage_objects(args.permifrost_spec_path, args.dry, args.users_to_skip)
     if is_success:
         console.print(
             "[bold][purple]\nManage Snowflake objects[/purple]"
@@ -41,80 +39,75 @@ def permifrost(args):
 
 
 def run(args):
-    drop_create(args)
+    manage(args)
     permifrost(args)
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description=(
-            "tundri - Drop, create and alter Snowflake objects"
-            " and set permissions with Permifrost"
-        )
+        description="tundri - Manage Snowflake objects and set permissions"
     )
     subparsers = parser.add_subparsers()
     help_str_users_to_skip = """
-        Users to ignore from drop, create, and alter operations
+        Users to ignore from object management operations
         (space-separated list, case-sensitive).
-        Users with admin priviliges can't be inspected by the permifrost user, because
-        of them being higher in the role hierarchy then the default tundri inspector
-        role. To avoid permission errors, skip those users during object inspection.
+        Users with admin privileges can't be inspected by the permifrost user,
+        because of them being higher in the role hierarchy than the default tundri
+        inspector role. To avoid permission errors, skip those users during inspection.
         Altering skipped users through tundri won't work and needs to be done manually!
     """
 
-    # Drop/create functionality
+    # Manage Snowflake objects (with drop_create as backwards-compatible alias)
+    def add_manage_args(p):
+        p.add_argument("-p", "--permifrost_spec_path", "--filepath", required=True)
+        p.add_argument("--dry", action="store_true", help="Run in dry mode")
+        p.add_argument(
+            "--users-to-skip",
+            nargs="+",
+            metavar="USER_NAME",
+            default=["admin", "snowflake", "auto_dba"],
+            help=help_str_users_to_skip,
+        )
+        p.set_defaults(func=manage)
+
+    parser_manage = subparsers.add_parser(
+        "manage", help="Manage Snowflake objects (create, drop, alter)"
+    )
+    add_manage_args(parser_manage)
+
     parser_drop_create = subparsers.add_parser(
-        "drop_create", help="Drop, create and alter Snowflake objects"
+        "drop_create", help="Alias for 'manage' (deprecated)"
     )
-    parser_drop_create.add_argument(
-        "-p", "--permifrost_spec_path", "--filepath", required=True
-    )
-    parser_drop_create.add_argument(
-        "--dry", action="store_true", help="Run in dry mode"
-    )
-    parser_drop_create.add_argument(
-        "--users-to-skip",
-        nargs="+",
-        metavar="USER_NAME",
-        default=["admin", "snowflake", "auto_dba"],
-        help=help_str_users_to_skip,
-    )
-    parser_drop_create.set_defaults(func=drop_create)
+    add_manage_args(parser_drop_create)
 
     # Permifrost functionality
-    parser_drop_create = subparsers.add_parser("permifrost", help="Run Permifrost")
-    parser_drop_create.add_argument(
+    parser_permifrost = subparsers.add_parser("permifrost", help="Run Permifrost")
+    parser_permifrost.add_argument(
         "-p", "--permifrost_spec_path", "--filepath", required=True
     )
-    parser_drop_create.add_argument(
-        "--dry", action="store_true", help="Run in dry mode"
-    )
-    parser_drop_create.set_defaults(func=permifrost)
+    parser_permifrost.add_argument("--dry", action="store_true", help="Run in dry mode")
+    parser_permifrost.set_defaults(func=permifrost)
 
     # Run both
-    parser_drop_create = subparsers.add_parser(
-        "run", help="Run drop_create and then permifrost"
-    )
-    parser_drop_create.add_argument(
-        "-p", "--permifrost_spec_path", "--filepath", required=True
-    )
-    parser_drop_create.add_argument(
-        "--dry", action="store_true", help="Run in dry mode"
-    )
-    parser_drop_create.add_argument(
+    parser_run = subparsers.add_parser("run", help="Run manage and then permifrost")
+    parser_run.add_argument("-p", "--permifrost_spec_path", "--filepath", required=True)
+    parser_run.add_argument("--dry", action="store_true", help="Run in dry mode")
+    parser_run.add_argument(
         "--users-to-skip",
         nargs="+",
         metavar="USER_NAME",
         default=["admin", "snowflake", "auto_dba"],
         help=help_str_users_to_skip,
     )
-    parser_drop_create.set_defaults(func=run)
+    parser_run.set_defaults(func=run)
+
+    if len(sys.argv) == 1:
+        parser.print_help()
+        sys.exit(1)
 
     args = parser.parse_args()
     if args.dry:
         log_dry_run_info()
-    # Loading .env here, because function needs access to the path to config .yml, as
-    # the .env is expected to live in the same directory as the .yml
     load_env_var(args.permifrost_spec_path)
     args.func(args)
 
