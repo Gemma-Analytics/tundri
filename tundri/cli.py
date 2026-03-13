@@ -23,6 +23,10 @@ def manage(args):
         sys.exit(1)
 
 
+# Keep drop_create as backwards-compatible alias
+drop_create = manage
+
+
 def permifrost(args):
     console.print("[bold][purple]Permifrost[/purple] started[/bold]")
     cmd = [
@@ -60,22 +64,28 @@ def main():
         Altering skipped users through tundri won't work and needs to be done manually!
     """
 
-    # Manage Snowflake objects
+    # Manage Snowflake objects (with drop_create as backwards-compatible alias)
+    def add_manage_args(p):
+        p.add_argument("-p", "--permifrost_spec_path", "--filepath", required=True)
+        p.add_argument("--dry", action="store_true", help="Run in dry mode")
+        p.add_argument(
+            "--users-to-skip",
+            nargs="+",
+            metavar="USER_NAME",
+            default=["admin", "snowflake", "auto_dba"],
+            help=help_str_users_to_skip,
+        )
+        p.set_defaults(func=manage)
+
     parser_manage = subparsers.add_parser(
-        "drop_create", help="Manage Snowflake objects (create, drop, alter)"
+        "manage", help="Manage Snowflake objects (create, drop, alter)"
     )
-    parser_manage.add_argument(
-        "-p", "--permifrost_spec_path", "--filepath", required=True
+    add_manage_args(parser_manage)
+
+    parser_drop_create = subparsers.add_parser(
+        "drop_create", help="Alias for 'manage' (deprecated)"
     )
-    parser_manage.add_argument("--dry", action="store_true", help="Run in dry mode")
-    parser_manage.add_argument(
-        "--users-to-skip",
-        nargs="+",
-        metavar="USER_NAME",
-        default=["admin", "snowflake", "auto_dba"],
-        help=help_str_users_to_skip,
-    )
-    parser_manage.set_defaults(func=manage)
+    add_manage_args(parser_drop_create)
 
     # Permifrost functionality
     parser_permifrost = subparsers.add_parser("permifrost", help="Run Permifrost")
@@ -86,9 +96,7 @@ def main():
     parser_permifrost.set_defaults(func=permifrost)
 
     # Run both
-    parser_run = subparsers.add_parser(
-        "run", help="Run drop_create and then permifrost"
-    )
+    parser_run = subparsers.add_parser("run", help="Run manage and then permifrost")
     parser_run.add_argument("-p", "--permifrost_spec_path", "--filepath", required=True)
     parser_run.add_argument("--dry", action="store_true", help="Run in dry mode")
     parser_run.add_argument(

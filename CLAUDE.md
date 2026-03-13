@@ -19,7 +19,8 @@ uv run tundri run --dry -p examples/permifrost.yml   # Dry run
 uv run tundri run -p examples/permifrost.yml          # Execute
 
 # Subcommands
-uv run tundri drop_create -p spec.yml --dry   # Manage objects only (skip Permifrost)
+uv run tundri manage -p spec.yml --dry        # Manage objects only (skip Permifrost)
+uv run tundri drop_create -p spec.yml --dry   # Alias for 'manage' (deprecated)
 uv run tundri permifrost -p spec.yml          # Permissions only (skip objects)
 
 # Tests
