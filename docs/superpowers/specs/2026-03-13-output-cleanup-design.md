@@ -34,15 +34,14 @@ Refactor all `console.log()` calls to `console.print()` and restructure the outp
 
 ### 3. Dry-run banner
 
-- Remove the two separate `log_dry_run_info()` calls (one before object management, one before Permifrost).
-- Add a single prominent banner at the very top of execution in `cli.py`, before anything else:
+- Update `log_dry_run_info()` in `utils.py`: replace the three-line dashes/text block with a single yellow/bold line:
 
 ```
 ⚠ DRY RUN — no changes will be applied
 ```
 
-- Yellow/bold styling, single line, no dashes.
-- `log_dry_run_info()` function in `utils.py` updated with new styling and called once.
+- Call `log_dry_run_info()` once at the very top of execution in `cli.py` (before env loading), instead of the current two calls (one before object management, one before Permifrost).
+- Remove the second call site.
 
 ### 4. Environment variable loading
 
@@ -52,6 +51,7 @@ Refactor all `console.log()` calls to `console.print()` and restructure the outp
 Loaded 7 environment variables from /path/to/.env
 ```
 
+- This also removes the printing of secret values (e.g. `PERMISSION_BOT_PASSWORD=...`) that were previously shown in plaintext — an intentional security improvement, not just a cosmetic change.
 - Fallback: `No .env file found, using system environment variables`
 - Empty file: `Empty .env file, using system environment variables`
 - Error cases still print full details.
@@ -68,6 +68,8 @@ Loaded 7 environment variables from /path/to/.env
 - Zero-count categories still appear in the summary (especially reassuring for `0 DROP`).
 - Flat list below the summary stays as-is (each statement prefixed with `- `).
 - No-op case: `No statements to execute (the state of Snowflake objects matches the Permifrost spec)`
+
+**Implementation note:** The current data model stores all ALTER statements (both SET and UNSET) under a single `ddl_statements["alter"]` list as plain strings. To produce separate SET/UNSET counts, the summary builder must parse each ALTER statement string — checking for `" UNSET "` to classify UNSET operations, with the remainder being SET. No structural changes to the data model are needed.
 
 ### 6. Inspector warnings
 
@@ -128,3 +130,9 @@ After each implementation task:
 | `tundri/inspector.py` | Warning format, `console.log` → `console.print` |
 
 No new files or modules created.
+
+## Drive-by fixes
+
+These are pre-existing issues fixed opportunistically during implementation:
+
+- **Unclosed Rich markup tag** in `cli.py` line 54: `[bold][purple]Permifrost[/purple] completed successfully[bold]` — the closing `[bold]` should be `[/bold]`. Will be fixed during the `console.log` → `console.print` migration.
