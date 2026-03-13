@@ -106,18 +106,76 @@ def build_statements_list(
     return statements_seq
 
 
-def print_ddl_statements(statements: Dict) -> None:
-    """Print DDL statements to be executed."""
+def build_summary_line(statements: List) -> str | None:
+    """Build a summary line showing counts of each DDL operation type.
+
+    Parses statement strings to classify operations. USE ROLE statements are skipped.
+    ALTER statements are sub-classified as SET or UNSET by checking for ' UNSET '.
+
+    Returns:
+        Summary string like '3 CREATE, 2 ALTER (1 SET, 1 UNSET), 0 DROP', or None if empty.
+    """
+    if not statements:
+        return None
+
+    create_count = 0
+    drop_count = 0
+    alter_set_count = 0
+    alter_unset_count = 0
+
+    for s in statements:
+        if s.startswith("USE ROLE"):
+            continue
+        if s.startswith("CREATE"):
+            create_count += 1
+        elif s.startswith("DROP"):
+            drop_count += 1
+        elif s.startswith("ALTER"):
+            if " UNSET " in s:
+                alter_unset_count += 1
+            else:
+                alter_set_count += 1
+
+    alter_total = alter_set_count + alter_unset_count
+    if alter_total > 0:
+        alter_parts = []
+        if alter_set_count > 0:
+            alter_parts.append(f"{alter_set_count} SET")
+        if alter_unset_count > 0:
+            alter_parts.append(f"{alter_unset_count} UNSET")
+        alter_str = f"{alter_total} ALTER ({', '.join(alter_parts)})"
+    else:
+        alter_str = "0 ALTER"
+
+    drop_str = f"{drop_count} DROP"
+
+    return f"{create_count} CREATE, {alter_str}, {drop_str}"
+
+
+def print_ddl_statements(statements: List) -> None:
+    """Print DDL statements to be executed with a summary line."""
     if not statements:
         console.print(
             "No statements to execute"
             " (the state of Snowflake objects matches the Permifrost spec)\n"
         )
         return
+
+    summary = build_summary_line(statements)
+    drop_count = sum(1 for s in statements if s.startswith("DROP"))
+    if drop_count > 0:
+        # Highlight DROP count in red within the summary
+        summary = summary.replace(f"{drop_count} DROP", f"[red]{drop_count} DROP[/red]")
+    console.print(summary)
+    console.print()
+
     for s in statements:
         if s.startswith("USE ROLE"):
             continue
-        console.print(f"[italic]- {s}[/italic]")
+        if s.startswith("DROP"):
+            console.print(f"[red]- {s}[/red]")
+        else:
+            console.print(f"[italic]- {s}[/italic]")
     console.print()
 
 
