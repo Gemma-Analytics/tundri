@@ -1,4 +1,4 @@
-from tundri.core import build_statements_list, resolve_objects
+from tundri.core import build_statements_list, build_summary_line, resolve_objects
 from tundri.objects import User, Warehouse
 
 
@@ -174,3 +174,59 @@ def test_build_statements_list():
     ]
 
     assert result == expected_output
+
+
+def test_build_summary_line_mixed_operations():
+    """Summary line should show counts for each operation type."""
+    statements = [
+        "USE ROLE SYSADMIN",
+        "DROP DATABASE old_db",
+        "USE ROLE SYSADMIN",
+        "CREATE WAREHOUSE wh1",
+        "USE ROLE SYSADMIN",
+        "CREATE DATABASE db1",
+        "USE ROLE SECURITYADMIN",
+        "ALTER USER foo SET rsa_public_key='...'",
+        "USE ROLE SECURITYADMIN",
+        "ALTER USER bar UNSET rsa_public_key",
+    ]
+    result = build_summary_line(statements)
+    assert result == "2 CREATE, 2 ALTER (1 SET, 1 UNSET), 1 DROP"
+
+
+def test_build_summary_line_no_statements():
+    """Empty list should return None."""
+    result = build_summary_line([])
+    assert result is None
+
+
+def test_build_summary_line_only_creates():
+    """Only CREATE operations — ALTER and DROP should show 0."""
+    statements = [
+        "USE ROLE SYSADMIN",
+        "CREATE WAREHOUSE wh1",
+        "USE ROLE SYSADMIN",
+        "CREATE DATABASE db1",
+    ]
+    result = build_summary_line(statements)
+    assert result == "2 CREATE, 0 ALTER, 0 DROP"
+
+
+def test_build_summary_line_only_alters_set():
+    """Only ALTER SET — no UNSET breakdown needed when all are SET."""
+    statements = [
+        "USE ROLE SECURITYADMIN",
+        "ALTER USER foo SET rsa_public_key='...'",
+    ]
+    result = build_summary_line(statements)
+    assert result == "0 CREATE, 1 ALTER (1 SET), 0 DROP"
+
+
+def test_build_summary_line_only_alters_unset():
+    """Only ALTER UNSET."""
+    statements = [
+        "USE ROLE SECURITYADMIN",
+        "ALTER USER foo UNSET rsa_public_key",
+    ]
+    result = build_summary_line(statements)
+    assert result == "0 CREATE, 1 ALTER (1 UNSET), 0 DROP"

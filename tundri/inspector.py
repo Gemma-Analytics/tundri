@@ -1,9 +1,7 @@
-import logging
 from pprint import pprint
 from typing import FrozenSet, List
 
 from rich.console import Console
-from rich.logging import RichHandler
 from snowflake.connector.errors import ProgrammingError
 
 from tundri.constants import INSPECTOR_ROLE, OBJECT_TYPE_MAP, OBJECT_TYPES
@@ -24,11 +22,6 @@ parameter_name_map = {
 }
 
 
-logging.basicConfig(
-    level="WARN", format="%(message)s", datefmt="[%X]", handlers=[RichHandler()]
-)
-log = logging.getLogger(__name__)
-log.setLevel("INFO")
 console = Console()
 
 
@@ -105,10 +98,10 @@ def inspect_users(users_to_skip: List[str]) -> FrozenSet[User]:
                 data.append(User(name=name, params=formatted_row))
             except ProgrammingError as e:
                 if "insufficient privileges" in e.msg.lower() and user in users_to_skip:
-                    console.log(
-                        "[bold][red]WARNING[/bold][/red]: Skipping metadata retrieval",
-                        f"for user {user}: Permifrost user doesn't have DESCRIBE",
-                        "privileges on this object",
+                    console.print(
+                        f"[blue]Info:[/blue] Skipping metadata retrieval"
+                        f" for user {user}: Permifrost user doesn't have DESCRIBE"
+                        " privileges on this object"
                     )
                 else:
                     raise e
