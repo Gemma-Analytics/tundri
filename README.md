@@ -135,3 +135,4 @@ The process requires the following GitHub secrets to be configured:
 - `SNOWFLAKE_*`: Snowflake credentials for running tests
 
 For full details on the release workflow, see [RELEASE_WORKFLOW.md](docs/RELEASE_WORKFLOW.md).
+
