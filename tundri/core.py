@@ -33,23 +33,17 @@ params_to_ignore_in_alter = {
     "warehouse": ["initially_suspended", "statement_timeout_in_seconds"],
 }
 
-# Params that should be UNSET in Snowflake when removed from the spec.
-# When a param exists in Snowflake with a non-empty value but is absent from the spec,
-# an UNSET statement is generated to reset it to its default. Extend this list with any
-# user-configurable param that should be cleared when removed from the spec.
+# Only credential params are auto-UNSET when absent from the spec (removing a public key
+# from spec should revoke it in Snowflake). All other params are treated as out-of-band:
+# they are only modified when explicitly listed in the spec's meta block.
 params_to_unset_if_absent = {
     "user": [
         "rsa_public_key",
         "rsa_public_key_2",
     ],
-    "warehouse": [
-        "comment",
-        "resource_monitor",
-        "max_cluster_count",
-        "min_cluster_count",
-    ],
-    "database": ["comment"],
-    "role": ["comment"],
+    "warehouse": [],
+    "database": [],
+    "role": [],
     "schema": [],
 }
 
