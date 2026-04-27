@@ -125,6 +125,30 @@ def test_resolve_objects_no_unset_for_warehouse_params():
     assert result["alter"] == []
 
 
+def test_resolve_objects_no_unset_for_database_params():
+    """Database params (comment) never auto-unset."""
+    from tundri.objects import Database
+
+    existing = Database(name="MY_DB", params={"comment": "set out of band"})
+    ought = Database(name="MY_DB", params={})
+
+    result = resolve_objects(frozenset([existing]), frozenset([ought]))
+
+    assert result["alter"] == []
+
+
+def test_resolve_objects_no_unset_for_role_params():
+    """Role params (comment) never auto-unset."""
+    from tundri.objects import Role
+
+    existing = Role(name="MY_ROLE", params={"comment": "set out of band"})
+    ought = Role(name="MY_ROLE", params={})
+
+    result = resolve_objects(frozenset([existing]), frozenset([ought]))
+
+    assert result["alter"] == []
+
+
 def test_build_statements_list():
     # Prepare test input
     test_statements = {
