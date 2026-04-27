@@ -2,31 +2,6 @@ from tundri.core import build_statements_list, build_summary_line, resolve_objec
 from tundri.objects import User, Warehouse
 
 
-def test_resolve_objects_generates_unset_for_removed_param():
-    """Removing a param from spec should generate an UNSET statement."""
-    existing = Warehouse(
-        name="WH1",
-        params={
-            "warehouse_size": "xsmall",
-            "auto_suspend": "60",
-            "comment": "my warehouse",
-        },
-    )
-    ought = Warehouse(
-        name="WH1",
-        params={"warehouse_size": "xsmall", "auto_suspend": "60"},  # comment removed
-    )
-
-    result = resolve_objects(frozenset([existing]), frozenset([ought]))
-
-    assert result["create"] == []
-    assert result["drop"] == []
-    assert len(result["alter"]) == 1
-    unset_stmt = result["alter"][0]
-    assert "UNSET" in unset_stmt
-    assert "comment" in unset_stmt.lower()
-
-
 def test_resolve_objects_no_unset_when_param_not_set_in_snowflake():
     """No UNSET should be generated when the param has no value in Snowflake."""
     existing = Warehouse(
@@ -61,20 +36,16 @@ def test_resolve_objects_no_unset_when_param_is_null_string_in_snowflake():
 
 def test_resolve_objects_generates_set_and_unset_simultaneously():
     """Both SET and UNSET can be generated in the same run for the same object."""
-    existing = Warehouse(
-        name="WH1",
+    existing = User(
+        name="testuser",
         params={
-            "warehouse_size": "xsmall",
-            "auto_suspend": "60",
-            "comment": "old comment",
+            "default_role": "old_role",
+            "rsa_public_key": "MIIBIjANBgkq...",
         },
     )
-    ought = Warehouse(
-        name="WH1",
-        params={
-            "warehouse_size": "medium",
-            "auto_suspend": "60",
-        },  # size changed, comment removed
+    ought = User(
+        name="testuser",
+        params={"default_role": "new_role"},  # role changed → SET; rsa key gone → UNSET
     )
 
     result = resolve_objects(frozenset([existing]), frozenset([ought]))
@@ -129,6 +100,29 @@ def test_resolve_objects_generates_unset_for_rsa_keys():
     unset_stmts = [s for s in result["alter"] if "UNSET" in s]
     assert len(unset_stmts) == 1
     assert "rsa_public_key" in unset_stmts[0].lower()
+
+
+def test_resolve_objects_no_unset_for_warehouse_params():
+    """Warehouse params (comment, resource_monitor, cluster counts) never auto-unset."""
+    existing = Warehouse(
+        name="WH1",
+        params={
+            "warehouse_size": "xsmall",
+            "auto_suspend": "60",
+            "comment": "set out of band",
+            "resource_monitor": "MY_MONITOR",
+            "max_cluster_count": "5",
+            "min_cluster_count": "1",
+        },
+    )
+    ought = Warehouse(
+        name="WH1",
+        params={"warehouse_size": "xsmall", "auto_suspend": "60"},
+    )
+
+    result = resolve_objects(frozenset([existing]), frozenset([ought]))
+
+    assert result["alter"] == []
 
 
 def test_build_statements_list():
