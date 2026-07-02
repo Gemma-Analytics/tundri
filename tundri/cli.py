@@ -1,5 +1,6 @@
 import argparse
 import sys
+from importlib.metadata import PackageNotFoundError, version
 
 from rich.console import Console
 
@@ -7,6 +8,13 @@ from tundri.core import manage_objects
 from tundri.utils import load_env_var, log_dry_run_info, run_command
 
 console = Console()
+
+
+def _get_version() -> str:
+    try:
+        return version("tundri")
+    except PackageNotFoundError:
+        return "unknown"
 
 
 def manage(args):
@@ -46,6 +54,11 @@ def run(args):
 def main():
     parser = argparse.ArgumentParser(
         description="tundri - Manage Snowflake objects and set permissions"
+    )
+    parser.add_argument(
+        "--version",
+        action="version",
+        version=f"%(prog)s {_get_version()}",
     )
     subparsers = parser.add_subparsers()
     help_str_users_to_skip = """
