@@ -1,5 +1,4 @@
 from pprint import pprint
-from typing import FrozenSet, List
 
 from rich.console import Console
 from snowflake.connector.errors import ProgrammingError
@@ -25,7 +24,7 @@ parameter_name_map = {
 console = Console()
 
 
-def inspect_schemas() -> FrozenSet[Schema]:
+def inspect_schemas() -> frozenset[Schema]:
     """Get schemas that exist based on Snowflake metadata.
 
     Returns:
@@ -55,7 +54,7 @@ def inspect_schemas() -> FrozenSet[Schema]:
     return frozenset([Schema(name=name) for name in existing_schema_names])
 
 
-def inspect_users(users_to_skip: List[str]) -> FrozenSet[User]:
+def inspect_users(users_to_skip: list[str]) -> frozenset[User]:
     """
     Get metadata of USER objects, using Snowflake's DESCRIBE command.
 
@@ -109,8 +108,8 @@ def inspect_users(users_to_skip: List[str]) -> FrozenSet[User]:
 
 
 def inspect_object_type(
-    object_type: str, users_to_skip: List[str]
-) -> FrozenSet[SnowflakeObject]:
+    object_type: str, users_to_skip: list[str]
+) -> frozenset[SnowflakeObject]:
     """Initialize Snowflake objects of a given type from Snowflake metadata.
 
     Args:

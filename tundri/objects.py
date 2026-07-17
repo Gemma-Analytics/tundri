@@ -1,5 +1,4 @@
 from dataclasses import dataclass, field
-from typing import Dict, Tuple
 
 
 @dataclass(frozen=True)
@@ -20,8 +19,8 @@ class SnowflakeObject:
 
     type: str = None
     name: str = None
-    params: Dict = field(default_factory=dict)
-    required_params: Tuple = field(default_factory=tuple)
+    params: dict = field(default_factory=dict)
+    required_params: tuple = field(default_factory=tuple)
 
     def __eq__(self, other):
         return (
@@ -47,7 +46,7 @@ class SnowflakeObject:
 @dataclass(frozen=True, eq=False)
 class Warehouse(SnowflakeObject):
     type: str = "warehouse"
-    required_params: Tuple = tuple(["warehouse_size", "auto_suspend"])
+    required_params: tuple = tuple(["warehouse_size", "auto_suspend"])
 
 
 @dataclass(frozen=True, eq=False)
@@ -68,7 +67,7 @@ class Role(SnowflakeObject):
 @dataclass(frozen=True, eq=False)
 class User(SnowflakeObject):
     type: str = "user"
-    required_params: Tuple = tuple(["default_role"])
+    required_params: tuple = tuple(["default_role"])
 
 
 class ConfigurationValueError(ValueError):
