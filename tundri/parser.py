@@ -1,5 +1,4 @@
 from pprint import pprint
-from typing import FrozenSet
 
 from yaml import Loader, load
 
@@ -10,7 +9,7 @@ from tundri.utils import format_metadata_value, plural
 PERMIFROST_YAML_FILEPATH = "examples/permifrost.yml"
 
 
-def parse_schemas(permifrost_spec: dict) -> FrozenSet[Schema]:
+def parse_schemas(permifrost_spec: dict) -> frozenset[Schema]:
     """Get schemas that ought to exist based on specific role definitions.
 
     The way schemas are defined in Permifrost is different from the other objects. We
@@ -61,7 +60,7 @@ def parse_schemas(permifrost_spec: dict) -> FrozenSet[Schema]:
 
 def parse_object_type(
     permifrost_spec: dict, object_type: str
-) -> FrozenSet[SnowflakeObject]:
+) -> frozenset[SnowflakeObject]:
     """Initialize Snowflake objects of a given type from Permifrost spec.
 
     Args:

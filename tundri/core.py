@@ -1,5 +1,4 @@
 import os
-from typing import Dict, FrozenSet, List
 
 from rich.console import Console
 from rich.prompt import Prompt
@@ -55,8 +54,8 @@ IS_CI_RUN = os.getenv("CI") == "true"
 
 
 def build_statements_list(
-    statements: Dict, object_types: List[str] = OBJECT_TYPES
-) -> List:
+    statements: dict, object_types: list[str] = OBJECT_TYPES
+) -> list:
     """
     Build a list of statements to be executed from a dictionary of statements with the
     structure:
@@ -90,7 +89,7 @@ def build_statements_list(
     return statements_seq
 
 
-def _count_operations(statements: List) -> tuple:
+def _count_operations(statements: list) -> tuple:
     """Count DDL operations in one pass.
 
     Returns (create, drop, alter_set, alter_unset).
@@ -126,7 +125,7 @@ def _format_summary(create: int, drop: int, alter_set: int, alter_unset: int) ->
     return f"{create} CREATE, {alter_str}, {drop} DROP"
 
 
-def build_summary_line(statements: List) -> str | None:
+def build_summary_line(statements: list) -> str | None:
     """Build a summary line showing counts of each DDL operation type.
 
     Parses statement strings to classify operations. USE ROLE statements are skipped.
@@ -140,7 +139,7 @@ def build_summary_line(statements: List) -> str | None:
     return _format_summary(*_count_operations(statements))
 
 
-def print_ddl_statements(statements: List) -> None:
+def print_ddl_statements(statements: list) -> None:
     """Print DDL statements to be executed with a summary line."""
     if not statements:
         console.print(
@@ -170,7 +169,7 @@ def print_ddl_statements(statements: List) -> None:
     console.print()
 
 
-def execute_ddl(statements: List) -> None:
+def execute_ddl(statements: list) -> None:
     """Execute drop, create and alter statements in sequence for each object type.
 
     Args:
@@ -187,8 +186,8 @@ def execute_ddl(statements: List) -> None:
 
 
 def ignore_system_defined_roles(
-    objects: FrozenSet[SnowflakeObject],
-) -> FrozenSet[SnowflakeObject]:
+    objects: frozenset[SnowflakeObject],
+) -> frozenset[SnowflakeObject]:
     """Ignore system-defined roles to avoid create/drop errors."""
     return frozenset(
         [
@@ -200,8 +199,8 @@ def ignore_system_defined_roles(
 
 
 def ignore_existing_users(
-    objects: FrozenSet[SnowflakeObject],
-) -> FrozenSet[SnowflakeObject]:
+    objects: frozenset[SnowflakeObject],
+) -> frozenset[SnowflakeObject]:
     """
     Ignore users that already exist
 
@@ -218,9 +217,9 @@ def ignore_existing_users(
 
 
 def resolve_objects(
-    existing_objects: FrozenSet[SnowflakeObject],
-    ought_objects: FrozenSet[SnowflakeObject],
-) -> Dict:
+    existing_objects: frozenset[SnowflakeObject],
+    ought_objects: frozenset[SnowflakeObject],
+) -> dict:
     """Prepare DROP, CREATE and ALTER statements for an object type.
 
     Args:
@@ -344,7 +343,7 @@ def resolve_objects(
 
 
 def manage_objects(
-    permifrost_spec_path: str, is_dry_run: bool, users_to_skip: List[str]
+    permifrost_spec_path: str, is_dry_run: bool, users_to_skip: list[str]
 ):
     """
     Manage Snowflake objects based on Permifrost specification and inspection

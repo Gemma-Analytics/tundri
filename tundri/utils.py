@@ -2,7 +2,7 @@ import logging
 import os
 import subprocess
 from pathlib import Path
-from typing import Dict, List, Type, TypeVar
+from typing import TypeVar
 
 from dotenv import dotenv_values, load_dotenv
 from rich.console import Console
@@ -58,7 +58,7 @@ def load_env_var(path_to_env: str):
         console.print("No .env file found, using system environment variables")
 
 
-def get_configs() -> Dict[str, str]:
+def get_configs() -> dict[str, str]:
     """Get configuration from environment variables, validating before returning."""
     config = {
         "user": os.getenv("PERMISSION_BOT_USER"),
@@ -139,10 +139,10 @@ def format_metadata_value(name: str, value):
     return value
 
 
-def format_params(params: Dict) -> str:
+def format_params(params: dict) -> str:
     """Returns formated list of parameters to use as arguments in DDL statements"""
 
-    def get_param_value_type(value: str) -> Type[T]:
+    def get_param_value_type(value: str) -> type[T]:
         if not isinstance(value, str):
             value = str(value)
         if value.isdigit():
@@ -194,7 +194,7 @@ def log_dry_run_info():
     )
 
 
-def get_existing_user(cursor: SnowflakeCursor) -> List[str]:
+def get_existing_user(cursor: SnowflakeCursor) -> list[str]:
     """
     Fetch a list of existing usernames from Snowflake
 
